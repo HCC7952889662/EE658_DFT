@@ -2,6 +2,30 @@
 import re
 from Circuit_Struct import *
 
+def command():
+    Done=0
+    while(Done==0):
+        command_input=input("Command>")
+        #command_input="read c17.v"
+        command_name=command_input.split(" ")
+        if command_name[0]=="read":
+            if len(command_name)>1:
+                ckt=verilog_parser(command_name[1])
+        elif command_name[0]=="pc":
+            ckt.pc()
+        elif command_name[0]=="help":
+            print("READ filename - read in circuit file and create all data structures")
+            print("PC - print circuit information")
+            print("HELP - print this help information")
+            print("QUIT - stop and exit")
+            print("LEV - levelize the circuit")
+        elif command_name[0]=="quit":
+            Done=1
+        elif command_name[0]=="lev":
+            levelization(ckt)
+        else:
+            print("Command not found!")
+
 def verilog_parser(filename):
     Circuit = Ckt()
     ipt = open(filename)
@@ -113,12 +137,13 @@ def levelization(circuit):
     for node in circuit.node_list:
         print("Node: "+ node.name +",  level="+ str(node.level))
 
-try:
-    #circuit_lock('s298')
-    ckt = verilog_parser('ckt/c17.v')
-    ckt.pc()
-    levelization(ckt)
-
+try:  
+    command()
+    
+    #ckt = verilog_parser('ckt/c17.v')
+    #ckt.pc() 
+    #levelization(ckt)
+    
 
 except IOError:
     print("error in the code")
