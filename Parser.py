@@ -1,5 +1,6 @@
 # Executed in Python 3.6
 import re
+import copy
 from Circuit_Struct import *
 
 def command():
@@ -58,7 +59,6 @@ def verilog_parser(filename):
                 for n in line_syntax.group(2).replace(' ', '').replace('\t', '').split(','):
                     new_node = Node(n, 'ipt')
                     Circuit.add_PI(new_node)
-                    #print(Circuit.PI)
                     new_connect = connect('ipt', n)
                     new_connect.input_node.append(new_node)
                     connection_info.append(new_connect)
@@ -107,35 +107,48 @@ def verilog_parser(filename):
     return Circuit
 
 def levelization(circuit):
-    rest_node = circuit.node_list[:]
-    print(circuit.PI)
-    print("**********************")
+    # Step 0: Prepare a queue storing the finished nodes
+    queue = []
+    # Step 1: Set all PI to lev0 and update the number_of_input_level_defined
     for node in circuit.PI:
         node.level = 0
-        rest_node.remove(node)
+        for dnode in node.fan_out_node:
+            dnode.number_of_input_level_defined += 1;
+            # Step 2: Checking whether number_of_input_level_defined is the same as fin
+            if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
+                # if it is the same, then put this ready node into the queue
+                queue.append(dnode)
 
-    while rest_node:
-        new_rest = []                # the rest node which cannot be processed currently
-        new_valid = rest_node[:]     # the node which can be processed currently
-        for node in rest_node:
-            for upnode in node.fan_in_node:
-                if upnode.level == -1:
-                    new_rest.append(node)
-                    new_valid.remove(node)
-                    break
-        for node in new_valid:
-            if node.gate_type in ['not', 'nand', 'and', 'nor', 'or', 'xor', 'xnor', 'buff']:
-                max_level = -1
-                for upnode in node.fan_in_node:
-                    max_level = max(max_level, upnode.level)
-                node.level = max_level + 1
-            # if the node is PO, the level = its fan-in gate level
-            elif node.gate_type == 'opt':
-                node.level = node.fan_in_node[0].level
-        rest_node = new_rest
+    if len(queue) != 0:
+        lev_recursive_part(queue)
 
-    for node in circuit.node_list:
-        print("Node: "+ node.name +",  level="+ str(node.level))
+    circuit.lev_print()
+
+def lev_recursive_part(queue):
+    # Step 3: Do the judgement of the level of nodes in queue
+    for node in queue:
+        if node.gate_type != 'opt':
+            # find the max level of input nodes
+            max_level = node.fan_in_node[0].level
+            for n in node.fan_in_node:
+                max_level = max(max_level, n.level)
+            node.level = max_level + 1;
+        else:
+            node.level = node.fan_in_node[0].level
+        # Step 4: Repeat the Step2 and Do Queue Maintainence
+        if len(node.fan_out_node) > 0:
+            for dnode in node.fan_out_node:
+                dnode.number_of_input_level_defined += 1
+                if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
+                    # if it is same, then put this ready node into the queue
+                    queue.append(dnode)
+        queue.remove(node)
+
+
+    if len(queue) != 0:
+        lev_recursive_part(queue)
+
+
 
 try:  
     command()
@@ -144,6 +157,7 @@ try:
     #ckt.pc() 
     #levelization(ckt)
     
+
 
 except IOError:
     print("error in the code")
