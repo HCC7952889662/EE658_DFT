@@ -32,31 +32,50 @@ def command():
 
 def simulation(circuit,filename):
     #ipt=open(filename)
-    #ipt=open("ckt1908_test_in.txt")
-    ipt=open("ckt17_test_in.txt")
+    ipt=open("ckt6288_test_in.txt")
+    #ipt=open("ckt17_test_in.txt")
     for node in circuit.node_list:#reset
         node.value=0
     for line in ipt:
         line_split=line.split(",")
         for node in circuit.PI:
             if node.name==("N"+line_split[0]):
-                node.value=line_split[1]
+                node.value=int(line_split[1])
     level=1
     max_level=0
     for node in circuit.node_list:
         if node.level>max_level:
             max_level=node.level
+    #for node in circuit.node_list:
+        #if node.gate_type=="opt":
+            #print(str(node.name)+" "+str(node.value))
     Done=0
     while(Done==0):
         for node in circuit.node_list:
-            if node.level==level:
+            if node.level==level and node.gate_type!="opt":
                 operation(node)
+            #if node.gate_type=="opt":
+                #print(str(node.name)+" "+str(node.value)+"!!!!!")
         if max_level==level:
             Done=1
         level+=1
     for node in circuit.node_list:
         if node.gate_type=="opt":
-            print(str(node.name)+" "+str(node.value))
+            for fin_node in node.fan_in_node:
+                result=int(fin_node.value)
+            node.value=result
+    #for node in circuit.node_list:
+        #print(str(node.name)+" "+str(node.value))
+    for node in circuit.node_list:
+        if node.gate_type=="opt":
+            print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value))
+    #for node in circuit.node_list:
+        #if node.level>122:
+            #print(str(node.name)+" "+str(node.value))
+            #for fin_node in node.fan_in_node:
+                #print(str(fin_node.name)+" "+str(fin_node.value))
+            #print("--------------------")
+
 
 def operation(node):
     result_and=1
@@ -65,40 +84,46 @@ def operation(node):
     result_nor=1
     count1=0
     result=0
-    if node.gate_type=="buff" or "opt":
+    #print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value)+"------")
+
+    if node.gate_type=="buff":
         for fin_node in node.fan_in_node:
-            result=fin_node.value
+            result=int(fin_node.value)
+            #print(str(fin_node.name)+" "+str(fin_node.value))
         node.value=result
-    if node.gate_type=="not":
+
+        #print(str(node.name)+" "+str(node.value))
+        #print("--------------------")
+    elif node.gate_type=="not":
         for fin_node in node.fan_in_node:
-            result=fin_node.value
+            result=int(fin_node.value)
         if result==1:
             node.value= 0
         else:
             node.value=1
-    if node.gate_type=="and":
+    elif node.gate_type=="and":
         for fin_node in node.fan_in_node:
-            if fin_node.value==0:
+            if int(fin_node.value)==0:
                 result_and=0
         node.value= result_and
-    if node.gate_type=="nand":
+    elif node.gate_type=="nand":
         for fin_node in node.fan_in_node:
-            if fin_node.value==0:
+            if int(fin_node.value)==0:
                 result_nand=1
         node.value= result_nand
-    if node.gate_type=="or":
+    elif node.gate_type=="or":
         for fin_node in node.fan_in_node:
-            if fin_node.value==1:
+            if int(fin_node.value)==1:
                 result_or=1
         node.value= result_or
-    if node.gate_type=="nor":
+    elif node.gate_type=="nor":
         for fin_node in node.fan_in_node:
-            if fin_node.value==1:
+            if int(fin_node.value)==1:
                 result_nor=0
         node.value= result_nor
-    if node.gate_type=="xor" or "xnor":
+    elif node.gate_type=="xor" or "xnor":
         for fin_node in node.fan_in_node:
-            if fin_node.value==1:
+            if int(fin_node.value)==1:
                 count1+=1
         if node.gate_type=="xor":
             if count1%2==1:
@@ -110,7 +135,7 @@ def operation(node):
                 node.value= 0
             else:
                 node.value= 1
-        
+    #print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value)+"------------------------")
 
 def verilog_parser(filename):
     Circuit = Ckt()
