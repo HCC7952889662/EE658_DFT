@@ -6,12 +6,8 @@ class Node:
 		self.fan_in_node = []  # The list of fan-in nodes
 		self.fan_out_node = []  # The list of fan-out nodes
 		self.value = None  # the output value of this gate
-<<<<<<< Updated upstream
-		self.level = -1    # the initial value (null) of the level
-=======
 		self.level = -1  # the initial value (null) of the level
 		self.number_of_input_level_defined = 0
->>>>>>> Stashed changes
 
 	def __del__(self):
 		pass
@@ -43,8 +39,8 @@ class Ckt:
 		pass
 
 	def add_object(self, obj):
-		self.node_list.append(obj)               # the memory location of node, point to the node
-		self.node_name_list.append(obj.name)     # the name of node: N1,N2...
+		self.node_list.append(obj)
+		self.node_name_list.append(obj.name)
 		self.node_count += 1
 
 
