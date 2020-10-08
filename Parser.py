@@ -1,5 +1,6 @@
 # Executed in Python 3.6
 import re
+import copy
 from Circuit_Struct import *
 
 def verilog_parser(filename):
@@ -83,6 +84,7 @@ def verilog_parser(filename):
     return Circuit
 
 def levelization(circuit):
+<<<<<<< Updated upstream
     rest_node = circuit.node_list[:]
     print(circuit.PI)
     print("**********************")
@@ -117,6 +119,53 @@ try:
     #circuit_lock('s298')
     ckt = verilog_parser('ckt/c17.v')
     ckt.pc()
+=======
+    # Step 0: Prepare a queue storing the finished nodes
+    queue = []
+    # Step 1: Set all PI to lev0 and update the number_of_input_level_defined
+    for node in circuit.PI:
+        node.level = 0
+        for dnode in node.fan_out_node:
+            dnode.number_of_input_level_defined += 1;
+            # Step 2: Checking whether number_of_input_level_defined is the same as fin
+            if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
+                # if it is the same, then put this ready node into the queue
+                queue.append(dnode)
+
+    if len(queue) != 0:
+        lev_recursive_part(queue)
+
+    circuit.lev_print()
+
+def lev_recursive_part(queue):
+    # Step 3: Do the judgement of the level of nodes in queue
+    for node in queue:
+        if node.gate_type != 'opt':
+            # find the max level of input nodes
+            max_level = node.fan_in_node[0].level
+            for n in node.fan_in_node:
+                max_level = max(max_level, n.level)
+            node.level = max_level + 1;
+        else:
+            node.level = node.fan_in_node[0].level
+        # Step 4: Repeat the Step2 and Do Queue Maintainence
+        if len(node.fan_out_node) > 0:
+            for dnode in node.fan_out_node:
+                dnode.number_of_input_level_defined += 1
+                if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
+                    # if it is same, then put this ready node into the queue
+                    queue.append(dnode)
+        queue.remove(node)
+
+
+    if len(queue) != 0:
+        lev_recursive_part(queue)
+
+
+try:
+    ckt = verilog_parser('ckt/c499.v')
+    #ckt.pc()
+>>>>>>> Stashed changes
     levelization(ckt)
 
 

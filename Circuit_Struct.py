@@ -6,7 +6,12 @@ class Node:
 		self.fan_in_node = []  # The list of fan-in nodes
 		self.fan_out_node = []  # The list of fan-out nodes
 		self.value = None  # the output value of this gate
+<<<<<<< Updated upstream
 		self.level = -1    # the initial value (null) of the level
+=======
+		self.level = -1  # the initial value (null) of the level
+		self.number_of_input_level_defined = 0
+>>>>>>> Stashed changes
 
 	def __del__(self):
 		pass
@@ -51,6 +56,7 @@ class Ckt:
 	def add_PO(self, obj):  # Add an object to the PO list
 		self.add_object(obj)
 		self.PO_count += 1
+		self.PO.append(obj)
 
 
 	def remove_node_from_PI(self, obj):
@@ -74,6 +80,12 @@ class Ckt:
 			for fo in obj.fan_out_node:
 				print(fo.name, end= ' ')
 			print('\n')
+
+	def lev_print(self):
+		print('Circuit Name: ', self.circuit_name)
+		print('#################### Node Information ####################')
+		for obj in self.node_list:
+			print(obj.name + ' : ' + str(obj.level))
 
 class connect():
 	def __init__(self,type, name):
