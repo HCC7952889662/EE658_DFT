@@ -6,7 +6,11 @@ class Node:
 		self.fan_in_node = []  # The list of fan-in nodes
 		self.fan_out_node = []  # The list of fan-out nodes
 		self.value = None  # the output value of this gate
+<<<<<<< HEAD
 		self.level = -1    # the initial value (null) of the level
+=======
+		self.level = -1  # the initial value (null) of the level
+>>>>>>> 7864be18a75dea1a821279e45945fb5f7e9a59ab
 		self.number_of_input_level_defined = 0
 
 	def __del__(self):
@@ -39,8 +43,8 @@ class Ckt:
 		pass
 
 	def add_object(self, obj):
-		self.node_list.append(obj)               # the memory location of node, point to the node
-		self.node_name_list.append(obj.name)     # the name of node: N1,N2...
+		self.node_list.append(obj)
+		self.node_name_list.append(obj.name)
 		self.node_count += 1
 
 
@@ -52,6 +56,7 @@ class Ckt:
 	def add_PO(self, obj):  # Add an object to the PO list
 		self.add_object(obj)
 		self.PO_count += 1
+		self.PO.append(obj)
 
 
 	def remove_node_from_PI(self, obj):
@@ -75,6 +80,12 @@ class Ckt:
 			for fo in obj.fan_out_node:
 				print(fo.name, end= ' ')
 			print('\n')
+	def lev_print(self):
+		print('Circuit Name: ', self.circuit_name)
+		print('#################### Node Information ####################')
+		for obj in self.node_list:
+			print(obj.name + ' : ' + str(obj.level))
+
 	def lev_print(self):
 		print('Circuit Name: ', self.circuit_name)
 		print('#################### Node Information ####################')
