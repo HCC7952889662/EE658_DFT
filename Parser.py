@@ -1,6 +1,5 @@
 # Executed in Python 3.6
 import re
-import copy
 from Circuit_Struct import *
 
 def command():
@@ -145,6 +144,7 @@ def verilog_parser(filename):
                 for n in line_syntax.group(2).replace(' ', '').replace('\t', '').split(','):
                     new_node = Node(n, 'ipt')
                     Circuit.add_PI(new_node)
+                    #print(Circuit.PI)
                     new_connect = connect('ipt', n)
                     new_connect.input_node.append(new_node)
                     connection_info.append(new_connect)
@@ -233,11 +233,6 @@ def lev_recursive_part(queue):
 
     if len(queue) != 0:
         lev_recursive_part(queue)
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 7864be18a75dea1a821279e45945fb5f7e9a59ab
 
 try:  
     command()
@@ -246,7 +241,6 @@ try:
     #ckt.pc() 
     #levelization(ckt)
     
-
 
 except IOError:
     print("error in the code")
