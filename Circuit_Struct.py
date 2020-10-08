@@ -7,6 +7,7 @@ class Node:
 		self.fan_out_node = []  # The list of fan-out nodes
 		self.value = None  # the output value of this gate
 		self.level = -1    # the initial value (null) of the level
+		self.number_of_input_level_defined = 0
 
 	def __del__(self):
 		pass
@@ -74,6 +75,11 @@ class Ckt:
 			for fo in obj.fan_out_node:
 				print(fo.name, end= ' ')
 			print('\n')
+	def lev_print(self):
+		print('Circuit Name: ', self.circuit_name)
+		print('#################### Node Information ####################')
+		for obj in self.node_list:
+			print(obj.name + ' : ' + str(obj.level))
 
 class connect():
 	def __init__(self,type, name):
