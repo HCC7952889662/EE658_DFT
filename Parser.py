@@ -19,12 +19,98 @@ def command():
             print("HELP - print this help information")
             print("QUIT - stop and exit")
             print("LEV - levelize the circuit")
+            print("SIM filename- simulate the circuit")
         elif command_name[0]=="quit":
             Done=1
         elif command_name[0]=="lev":
             levelization(ckt)
+        elif command_name[0]=="sim":
+            if len(command_name)>1:
+                simulation(ckt,command_name[1])
         else:
             print("Command not found!")
+
+def simulation(circuit,filename):
+    #ipt=open(filename)
+    #ipt=open("ckt1908_test_in.txt")
+    ipt=open("ckt17_test_in.txt")
+    for node in circuit.node_list:#reset
+        node.value=0
+    for line in ipt:
+        line_split=line.split(",")
+        for node in circuit.PI:
+            if node.name==("N"+line_split[0]):
+                node.value=line_split[1]
+    level=1
+    max_level=0
+    for node in circuit.node_list:
+        if node.level>max_level:
+            max_level=node.level
+    Done=0
+    while(Done==0):
+        for node in circuit.node_list:
+            if node.level==level:
+                operation(node)
+        if max_level==level:
+            Done=1
+        level+=1
+    for node in circuit.node_list:
+        if node.gate_type=="opt":
+            print(str(node.name)+" "+str(node.value))
+
+def operation(node):
+    result_and=1
+    result_nand=0
+    result_or=0
+    result_nor=1
+    count1=0
+    result=0
+    if node.gate_type=="buff" or "opt":
+        for fin_node in node.fan_in_node:
+            result=fin_node.value
+        node.value=result
+    if node.gate_type=="not":
+        for fin_node in node.fan_in_node:
+            result=fin_node.value
+        if result==1:
+            node.value= 0
+        else:
+            node.value=1
+    if node.gate_type=="and":
+        for fin_node in node.fan_in_node:
+            if fin_node.value==0:
+                result_and=0
+        node.value= result_and
+    if node.gate_type=="nand":
+        for fin_node in node.fan_in_node:
+            if fin_node.value==0:
+                result_nand=1
+        node.value= result_nand
+    if node.gate_type=="or":
+        for fin_node in node.fan_in_node:
+            if fin_node.value==1:
+                result_or=1
+        node.value= result_or
+    if node.gate_type=="nor":
+        for fin_node in node.fan_in_node:
+            if fin_node.value==1:
+                result_nor=0
+        node.value= result_nor
+    if node.gate_type=="xor" or "xnor":
+        for fin_node in node.fan_in_node:
+            if fin_node.value==1:
+                count1+=1
+        if node.gate_type=="xor":
+            if count1%2==1:
+                node.value= 1
+            else:
+                node.value= 0
+        else:
+            if count1%2==1:
+                node.value= 0
+            else:
+                node.value= 1
+        
 
 def verilog_parser(filename):
     Circuit = Ckt()
@@ -107,35 +193,46 @@ def verilog_parser(filename):
     return Circuit
 
 def levelization(circuit):
-    rest_node = circuit.node_list[:]
-    print(circuit.PI)
-    print("**********************")
+    # Step 0: Prepare a queue storing the finished nodes
+    queue = []
+    # Step 1: Set all PI to lev0 and update the number_of_input_level_defined
     for node in circuit.PI:
         node.level = 0
-        rest_node.remove(node)
+        for dnode in node.fan_out_node:
+            dnode.number_of_input_level_defined += 1;
+            # Step 2: Checking whether number_of_input_level_defined is the same as fin
+            if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
+                # if it is the same, then put this ready node into the queue
+                queue.append(dnode)
 
-    while rest_node:
-        new_rest = []                # the rest node which cannot be processed currently
-        new_valid = rest_node[:]     # the node which can be processed currently
-        for node in rest_node:
-            for upnode in node.fan_in_node:
-                if upnode.level == -1:
-                    new_rest.append(node)
-                    new_valid.remove(node)
-                    break
-        for node in new_valid:
-            if node.gate_type in ['not', 'nand', 'and', 'nor', 'or', 'xor', 'xnor', 'buff']:
-                max_level = -1
-                for upnode in node.fan_in_node:
-                    max_level = max(max_level, upnode.level)
-                node.level = max_level + 1
-            # if the node is PO, the level = its fan-in gate level
-            elif node.gate_type == 'opt':
-                node.level = node.fan_in_node[0].level
-        rest_node = new_rest
+    if len(queue) != 0:
+        lev_recursive_part(queue)
 
-    for node in circuit.node_list:
-        print("Node: "+ node.name +",  level="+ str(node.level))
+    circuit.lev_print()
+
+def lev_recursive_part(queue):
+    # Step 3: Do the judgement of the level of nodes in queue
+    for node in queue:
+        if node.gate_type != 'opt':
+            # find the max level of input nodes
+            max_level = node.fan_in_node[0].level
+            for n in node.fan_in_node:
+                max_level = max(max_level, n.level)
+            node.level = max_level + 1;
+        else:
+            node.level = node.fan_in_node[0].level
+        # Step 4: Repeat the Step2 and Do Queue Maintainence
+        if len(node.fan_out_node) > 0:
+            for dnode in node.fan_out_node:
+                dnode.number_of_input_level_defined += 1
+                if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
+                    # if it is same, then put this ready node into the queue
+                    queue.append(dnode)
+        queue.remove(node)
+
+
+    if len(queue) != 0:
+        lev_recursive_part(queue)
 
 try:  
     command()
