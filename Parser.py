@@ -11,6 +11,8 @@ def command():
         if command_name[0]=="read":
             if len(command_name)>1:
                 ckt=verilog_parser(command_name[1])
+            else:
+                print("Please enter an input file name!")
         elif command_name[0]=="pc":
             ckt.pc()
         elif command_name[0]=="help":
@@ -23,11 +25,15 @@ def command():
         elif command_name[0]=="quit":
             Done=1
         elif command_name[0]=="lev":
-        	if len(command_name)>1:
-        		levelization(ckt, command_name[1])
+            if len(command_name)>1:
+                levelization(ckt, command_name[1])
+            else:
+                print("Please enter an input file name!")
         elif command_name[0]=="logicsim":
             if len(command_name)>2:
                 simulation(ckt,command_name[1],command_name[2])
+            else:
+                print("Please enter an file name!")
         else:
             print("Command not found!")
 
