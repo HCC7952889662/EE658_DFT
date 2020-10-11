@@ -34,6 +34,7 @@ class Ckt:
 		self.PI_count = 0 # IPT numbers
 		self.PO_count = 0 #PO numbers
 		self.node_count = 0 # How many nodes in the circuit
+		self.Gate_count = 0
 
 	def __del__(self):
 		pass
@@ -75,11 +76,19 @@ class Ckt:
 			for fo in obj.fan_out_node:
 				print(fo.name, end= ' ')
 			print('\n')
-	def lev_print(self):
-		print('Circuit Name: ', self.circuit_name)
+	def lev_print(self,outputfilename):
+		fw=open(outputfilename,mode='w')
+		fw.write(self.circuit_name+"\n")
+		fw.write("#PI: "+str(self.PI_count)+"\n")
+		fw.write("#PO: "+str(self.PO_count)+"\n")
+		fw.write("#Nodes: "+str(self.node_count)+"\n")
+		fw.write("#Gates: "+str(self.Gate_count)+"\n")
+		print('Circuit Name: '+str(self.circuit_name)+"\n")
 		print('#################### Node Information ####################')
 		for obj in self.node_list:
 			print(obj.name + ' : ' + str(obj.level))
+			fw.write(obj.name + ' ' + str(obj.level)+"\n")
+		fw.close()
 
 class connect():
 	def __init__(self,type, name):

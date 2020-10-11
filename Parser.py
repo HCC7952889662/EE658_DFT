@@ -6,7 +6,7 @@ def command():
     Done=0
     while(Done==0):
         command_input=input("Command>")
-        #command_input="read c17.v"
+        command_input=command_input.lower()
         command_name=command_input.split(" ")
         if command_name[0]=="read":
             if len(command_name)>1:
@@ -19,21 +19,21 @@ def command():
             print("HELP - print this help information")
             print("QUIT - stop and exit")
             print("LEV - levelize the circuit")
-            print("SIM filename- simulate the circuit")
+            print("LOGICSIM filename- simulate the circuit")
         elif command_name[0]=="quit":
             Done=1
         elif command_name[0]=="lev":
-            levelization(ckt)
-        elif command_name[0]=="sim":
-            if len(command_name)>1:
-                simulation(ckt,command_name[1])
+        	if len(command_name)>1:
+        		levelization(ckt, command_name[1])
+        elif command_name[0]=="logicsim":
+            if len(command_name)>2:
+                simulation(ckt,command_name[1],command_name[2])
         else:
             print("Command not found!")
 
-def simulation(circuit,filename):
-    #ipt=open(filename)
-    ipt=open("ckt6288_test_in.txt")
-    #ipt=open("ckt17_test_in.txt")
+def simulation(circuit,inputfilename,outputfilename):
+    ipt=open(inputfilename,mode='r')
+    fw=open(outputfilename,mode='w')
     for node in circuit.node_list:#reset
         node.value=0
     for line in ipt:
@@ -46,16 +46,11 @@ def simulation(circuit,filename):
     for node in circuit.node_list:
         if node.level>max_level:
             max_level=node.level
-    #for node in circuit.node_list:
-        #if node.gate_type=="opt":
-            #print(str(node.name)+" "+str(node.value))
     Done=0
     while(Done==0):
         for node in circuit.node_list:
             if node.level==level and node.gate_type!="opt":
                 operation(node)
-            #if node.gate_type=="opt":
-                #print(str(node.name)+" "+str(node.value)+"!!!!!")
         if max_level==level:
             Done=1
         level+=1
@@ -64,18 +59,12 @@ def simulation(circuit,filename):
             for fin_node in node.fan_in_node:
                 result=int(fin_node.value)
             node.value=result
-    #for node in circuit.node_list:
-        #print(str(node.name)+" "+str(node.value))
     for node in circuit.node_list:
         if node.gate_type=="opt":
+            fw.write(node.name.lstrip("N")+","+str(node.value)+"\n")
             print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value))
-    #for node in circuit.node_list:
-        #if node.level>122:
-            #print(str(node.name)+" "+str(node.value))
-            #for fin_node in node.fan_in_node:
-                #print(str(fin_node.name)+" "+str(fin_node.value))
-            #print("--------------------")
-
+    ipt.close()
+    fw.close()
 
 def operation(node):
     result_and=1
@@ -84,16 +73,10 @@ def operation(node):
     result_nor=1
     count1=0
     result=0
-    #print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value)+"------")
-
     if node.gate_type=="buff":
         for fin_node in node.fan_in_node:
             result=int(fin_node.value)
-            #print(str(fin_node.name)+" "+str(fin_node.value))
         node.value=result
-
-        #print(str(node.name)+" "+str(node.value))
-        #print("--------------------")
     elif node.gate_type=="not":
         for fin_node in node.fan_in_node:
             result=int(fin_node.value)
@@ -135,7 +118,6 @@ def operation(node):
                 node.value= 0
             else:
                 node.value= 1
-    #print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value)+"------------------------")
 
 def verilog_parser(filename):
     Circuit = Ckt()
@@ -144,6 +126,8 @@ def verilog_parser(filename):
     eff_line = ''
 
     for line in ipt:
+        if "NtotalGates" in line:
+            Circuit.Gate_count = line[-2]
         # eliminate comment first
         line_syntax = re.match(r'^.*//.*', line, re.IGNORECASE)
         if line_syntax:
@@ -217,7 +201,7 @@ def verilog_parser(filename):
 
     return Circuit
 
-def levelization(circuit):
+def levelization(circuit,outputfilename):
     # Step 0: Prepare a queue storing the finished nodes
     queue = []
     # Step 1: Set all PI to lev0 and update the number_of_input_level_defined
@@ -233,7 +217,7 @@ def levelization(circuit):
     if len(queue) != 0:
         lev_recursive_part(queue)
 
-    circuit.lev_print()
+    circuit.lev_print(outputfilename)
 
 def lev_recursive_part(queue):
     # Step 3: Do the judgement of the level of nodes in queue
