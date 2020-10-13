@@ -6,7 +6,7 @@ class Node:
 		self.fan_in_node = []  # The list of fan-in nodes
 		self.fan_out_node = []  # The list of fan-out nodes
 		self.value = None  # the output value of this gate
-		self.level = -1  # the initial value (null) of the level
+		self.level = -1    # the initial value (null) of the level
 		self.number_of_input_level_defined = 0
 
 	def __del__(self):
@@ -34,13 +34,14 @@ class Ckt:
 		self.PI_count = 0 # IPT numbers
 		self.PO_count = 0 #PO numbers
 		self.node_count = 0 # How many nodes in the circuit
+		self.Gate_count = 0
 
 	def __del__(self):
 		pass
 
 	def add_object(self, obj):
-		self.node_list.append(obj)
-		self.node_name_list.append(obj.name)
+		self.node_list.append(obj)               # the memory location of node, point to the node
+		self.node_name_list.append(obj.name)     # the name of node: N1,N2...
 		self.node_count += 1
 
 
@@ -52,7 +53,6 @@ class Ckt:
 	def add_PO(self, obj):  # Add an object to the PO list
 		self.add_object(obj)
 		self.PO_count += 1
-		self.PO.append(obj)
 
 
 	def remove_node_from_PI(self, obj):
@@ -76,12 +76,19 @@ class Ckt:
 			for fo in obj.fan_out_node:
 				print(fo.name, end= ' ')
 			print('\n')
-
-	def lev_print(self):
-		print('Circuit Name: ', self.circuit_name)
+	def lev_print(self,outputfilename):
+		fw=open(outputfilename,mode='w')
+		fw.write(self.circuit_name+"\n")
+		fw.write("#PI: "+str(self.PI_count)+"\n")
+		fw.write("#PO: "+str(self.PO_count)+"\n")
+		fw.write("#Nodes: "+str(self.node_count)+"\n")
+		fw.write("#Gates: "+str(self.Gate_count)+"\n")
+		print('Circuit Name: '+str(self.circuit_name)+"\n")
 		print('#################### Node Information ####################')
 		for obj in self.node_list:
 			print(obj.name + ' : ' + str(obj.level))
+			fw.write(obj.name + ' ' + str(obj.level)+"\n")
+		fw.close()
 
 class connect():
 	def __init__(self,type, name):
