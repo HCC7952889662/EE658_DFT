@@ -1,5 +1,5 @@
 # EE658_DFT
-### This project is for 2020 EE658 at University of Southern California.
+### This project is for FALL2020 Course EE658 at University of Southern California.
 
 ## Fast Simulation:
 ```Bash
