@@ -11,7 +11,7 @@ sh compile.sh
 * [Ting-Yu Chang](https://github.com/TingYu0924)
 * [Hsu-Cheng Cheng(Alex)](https://github.com/HCC7952889662)
 
-## Prgress
+## Progress
 - [x] Gate-Level Verilog file Parser
 - [x] Circuit Levelization
 - [x] Circuit Simulation
