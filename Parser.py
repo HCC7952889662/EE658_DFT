@@ -16,7 +16,7 @@ def command():
         elif command_name[0]=="pc":
             ckt.pc()
         elif command_name[0]=="help":
-            print("READ filename - read in circuit file and create all data structures")
+            print("READ input_filename - read in circuit file and create all data structures")
             print("PC - print circuit information")
             print("HELP - print this help information")
             print("QUIT - stop and exit")
