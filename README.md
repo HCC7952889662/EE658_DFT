@@ -1,3 +1,14 @@
 # EE658_DFT
+### This project is for 2020 EE658 at University of Southern California.
 
-sh compile.sh 
+## Fast Simulation:
+```Bash
+sh compile.sh
+```
+## Members
+
+Team Members:
+* [Ruochen Ma](https://github.com/ruochen627)
+* [Yichen Wang](https://github.com/wyc811504)
+* [Ting-Yu Chang](https://github.com/TingYu0924)
+* [Hsu-Cheng Cheng(Alex)](https://github.com/HCC7952889662)
