@@ -20,7 +20,7 @@ def command():
             print("PC - print circuit information")
             print("HELP - print this help information")
             print("QUIT - stop and exit")
-            print("LEV - levelize the circuit")
+            print("LEV output_filename - levelize the circuit")
             print("LOGICSIM input_filename output_filename - simulate the circuit")
         elif command_name[0]=="quit":
             Done=1
