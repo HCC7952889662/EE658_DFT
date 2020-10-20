@@ -1,3 +1,5 @@
+import re
+
 class Node:
 	def __init__(self, name: str, type:str):
 		self.name = name  # Node name
@@ -11,30 +13,18 @@ class Node:
 
 	def __del__(self):
 		pass
-	def add_fan_in(self, x):
-		self.fan_in_node.append(x)
-
-	def add_fan_out(self, x):
-		self.fan_out_node.append(x)
-
-	def remove_fan_in(self, x):
-		self.fan_in_node.remove(x)
-
-	def remove_fan_out(self, x):
-		self.fan_out_node.remove(x)
 
 
-class Ckt:
-	def __init__(self):
+
+class Circuit:
+	def __init__(self, filename):
 		self.circuit_name = None  # The circuit name
 		self.node_list = []  # The list storing all nodes
 		self.node_name_list = [] # Name Information
 		self.PI = []  # Primary input
 		self.PO = []  # Primary output
-		self.PI_count = 0 # IPT numbers
-		self.PO_count = 0 #PO numbers
-		self.node_count = 0 # How many nodes in the circuit
-		self.Gate_count = 0
+		# Circuit Initialization
+		self.verilog_parser(filename)
 
 	def __del__(self):
 		pass
@@ -42,30 +32,98 @@ class Ckt:
 	def add_object(self, obj):
 		self.node_list.append(obj)               # the memory location of node, point to the node
 		self.node_name_list.append(obj.name)     # the name of node: N1,N2...
-		self.node_count += 1
 
 
 	def add_PI(self, obj):
 		self.add_object(obj)
-		self.PI_count += 1
 		self.PI.append(obj)
 
 	def add_PO(self, obj):  # Add an object to the PO list
 		self.add_object(obj)
-		self.PO_count += 1
+		self.PO.append(obj)
 
+	def verilog_parser(self, filename):
+		ipt = open(filename)
+		connection_info = []
+		eff_line = ''
 
-	def remove_node_from_PI(self, obj):
-		self.PI.remove(obj)
+		for line in ipt:
+			# eliminate comment first
+			line_syntax = re.match(r'^.*//.*', line, re.IGNORECASE)
+			if line_syntax:
+				line = line[:line.index('//')]
 
-	def remove_node_from_PO(self, obj):
-		self.PO.remove(obj)
+			# considering ';' issues
+			if ';' not in line and 'endmodule' not in line:
+				eff_line = eff_line + line.rstrip()
+				continue
+			line = eff_line + line.rstrip()
+			eff_line = ''
+			if line != "":
+				# wire
+				line_syntax = re.match(r'^[\s]*wire (.*,*);', line, re.IGNORECASE)
+				if line_syntax:
+					for n in line_syntax.group(1).replace(' ', '').replace('\t', '').split(','):
+						new_connect = connect('wire', n)
+						connection_info.append(new_connect)
+
+				# PI
+				line_syntax = re.match(r'^.*input ([a-z]+\s)*(.*,*).*;', line, re.IGNORECASE)
+				if line_syntax:
+					for n in line_syntax.group(2).replace(' ', '').replace('\t', '').split(','):
+						new_node = Node(n, 'ipt')
+						self.add_PI(new_node)
+						#print(self.PI)
+						new_connect = connect('ipt', n)
+						new_connect.input_node.append(new_node)
+						connection_info.append(new_connect)
+
+				# PO
+				line_syntax = re.match(r'^.*output ([a-z]+\s)*(.*,*).*;', line, re.IGNORECASE)
+				if line_syntax:
+					for n in line_syntax.group(2).replace(' ', '').replace('\t', '').split(','):
+						new_node = Node(n, 'opt')
+						self.add_PO(new_node)
+						new_connect = connect('opt', n)
+						new_connect.output_node.append(new_node)
+						connection_info.append(new_connect)
+
+				# Module or Gate
+				line_syntax = re.match(r'\s*(.+?) (.+?)\s*\((.*)\s*\);$', line, re.IGNORECASE)
+				if line_syntax:
+					if line_syntax.group(1) == 'module':
+						self.circuit_name = line_syntax.group(2).replace(' ', '')
+
+					else:
+						gate_order = line_syntax.group(3).replace(' ', '').split(',')
+						new_node = Node(line_syntax.group(2), line_syntax.group(1))
+						self.add_object(new_node)
+						#Default Output is 1, so the gate order is OIIIIIII...
+						for index in range(len(gate_order)):
+							for C in connection_info:
+								# Output
+								if index == 0:
+									if C.name == gate_order[index]:
+										C.input_node.append(new_node)
+								# Input
+								else:
+									if C.name == gate_order[index]:
+										C.output_node.append(new_node)
+		ipt.close()
+
+		# Dealing with the connection
+		for c in connection_info:
+			for i in c.input_node:
+				for o in c.output_node:
+					o.fan_in_node.append(i)
+					i.fan_out_node.append(o)
+
 
 	def pc(self):
 		print('Circuit Name: ', self.circuit_name)
-		print('Total PI:', self.PI_count)
-		print('Total PO:', self.PO_count)
-		print('Total Nodes:', self.node_count)
+		print('Total PI:', len(self.PI))
+		print('Total PO:', len(self.PO))
+		print('Total Nodes:', len(self.node_list))
 		print('#################### Node Information ####################')
 		for obj in self.node_list:
 			print(obj.name + '(' + obj.gate_type + ')')
@@ -76,13 +134,55 @@ class Ckt:
 			for fo in obj.fan_out_node:
 				print(fo.name, end= ' ')
 			print('\n')
+
+	def levelization(self, outputfilename):
+		# Step 0: Prepare a queue storing the finished nodes
+		queue = []
+		# Step 1: Set all PI to lev0 and update the number_of_input_level_defined
+		for node in self.PI:
+			node.level = 0
+			for dnode in node.fan_out_node:
+				dnode.number_of_input_level_defined += 1;
+				# Step 2: Checking whether number_of_input_level_defined is the same as fin
+				if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
+					# if it is the same, then put this ready node into the queue
+					queue.append(dnode)
+
+		if len(queue) != 0:
+			self.lev_recursive_part(queue)
+
+		self.lev_print(outputfilename)
+
+	def lev_recursive_part(self, queue):
+		# Step 3: Do the judgement of the level of nodes in queue
+		for node in queue:
+			if node.gate_type != 'opt':
+				# find the max level of input nodes
+				max_level = node.fan_in_node[0].level
+				for n in node.fan_in_node:
+					max_level = max(max_level, n.level)
+				node.level = max_level + 1;
+			else:
+				node.level = node.fan_in_node[0].level
+			# Step 4: Repeat the Step2 and Do Queue Maintainence
+			if len(node.fan_out_node) > 0:
+				for dnode in node.fan_out_node:
+					dnode.number_of_input_level_defined += 1
+					if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
+						# if it is same, then put this ready node into the queue
+						queue.append(dnode)
+			queue.remove(node)
+
+		if len(queue) != 0:
+			self.lev_recursive_part(queue)
+
 	def lev_print(self,outputfilename):
 		fw=open(outputfilename,mode='w')
 		fw.write(self.circuit_name+"\n")
-		fw.write("#PI: "+str(self.PI_count)+"\n")
-		fw.write("#PO: "+str(self.PO_count)+"\n")
-		fw.write("#Nodes: "+str(self.node_count)+"\n")
-		fw.write("#Gates: "+str(self.Gate_count)+"\n")
+		fw.write("#PI: "+str(len(self.PI))+"\n")
+		fw.write("#PO: "+str(len(self.PO))+"\n")
+		fw.write("#Nodes: "+str(len(self.node_list))+"\n")
+		fw.write("#Gates: "+str(len(self.node_list) - len(self.PI) - len(self.PO))+"\n")
 		print('Circuit Name: '+str(self.circuit_name)+"\n")
 		print('#################### Node Information ####################')
 		for obj in self.node_list:
@@ -96,3 +196,5 @@ class connect():
 		self.name = name
 		self.input_node  = [] ## this wire is the Input of nodes in this list
 		self.output_node = [] ## this wire is the Output of nodes in this list
+
+
