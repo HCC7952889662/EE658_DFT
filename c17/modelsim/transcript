@@ -17,33 +17,30 @@
 # vmap work work 
 # Modifying modelsim.ini
 # Model Technology ModelSim SE-64 vlog 10.6e Compiler 2018.06 Jun 23 2018
-# Start time: 19:58:51 on Oct 20,2020
+# Start time: 20:20:40 on Oct 20,2020
 # vlog -reportprogress 300 -work work c17.v 
 # -- Compiling module c17
 # 
 # Top level modules:
 # 	c17
-# End time: 19:58:51 on Oct 20,2020, Elapsed time: 0:00:00
+# End time: 20:20:40 on Oct 20,2020, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # Model Technology ModelSim SE-64 vlog 10.6e Compiler 2018.06 Jun 23 2018
-# Start time: 19:58:51 on Oct 20,2020
+# Start time: 20:20:40 on Oct 20,2020
 # vlog -reportprogress 300 -work work c17_tb.v 
 # -- Compiling module c17_tb
 # 
 # Top level modules:
 # 	c17_tb
-# End time: 19:58:51 on Oct 20,2020, Elapsed time: 0:00:00
+# End time: 20:20:40 on Oct 20,2020, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # vsim -novopt work.c17_tb 
-# Start time: 19:58:52 on Oct 20,2020
+# Start time: 20:20:41 on Oct 20,2020
 # ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
-# Refreshing D:/study/EE 658/proj_p1/EE658_DFT-simulation/c17/modelsim/work.c17_tb
+# Refreshing D:/study/EE 658/proj_p1/EE658_DFT/c17/modelsim/work.c17_tb
 # Loading work.c17_tb
-# Refreshing D:/study/EE 658/proj_p1/EE658_DFT-simulation/c17/modelsim/work.c17
+# Refreshing D:/study/EE 658/proj_p1/EE658_DFT/c17/modelsim/work.c17
 # Loading work.c17
-# ** Warning: (vsim-3533) [FOFIW] - Failed to open file "./gold/c17_t0_out.txt" for writing.
-# No such file or directory. (errno = ENOENT)    : c17_tb.v(20)
-#    Time: 0 ns  Iteration: 0  Instance: /c17_tb
 # i=1,in=0
 # 
 # i=2,in=0
@@ -56,9 +53,6 @@
 # 
 # N22=0,N23=0
 # 
-# ** Warning: (vsim-3533) [FOFIW] - Failed to open file "./gold/c17_t1_out.txt" for writing.
-# No such file or directory. (errno = ENOENT)    : c17_tb.v(36)
-#    Time: 1 ns  Iteration: 0  Instance: /c17_tb
 # i=1,in=1
 # 
 # i=2,in=1
@@ -71,9 +65,6 @@
 # 
 # N22=1,N23=0
 # 
-# ** Warning: (vsim-3533) [FOFIW] - Failed to open file "./gold/c17_t2_out.txt" for writing.
-# No such file or directory. (errno = ENOENT)    : c17_tb.v(52)
-#    Time: 2 ns  Iteration: 0  Instance: /c17_tb
 # i=1,in=1
 # 
 # i=2,in=0
@@ -86,9 +77,6 @@
 # 
 # N22=1,N23=1
 # 
-# ** Warning: (vsim-3533) [FOFIW] - Failed to open file "./gold/c17_t3_out.txt" for writing.
-# No such file or directory. (errno = ENOENT)    : c17_tb.v(68)
-#    Time: 3 ns  Iteration: 0  Instance: /c17_tb
 # i=1,in=1
 # 
 # i=2,in=1
@@ -101,9 +89,6 @@
 # 
 # N22=1,N23=0
 # 
-# ** Warning: (vsim-3533) [FOFIW] - Failed to open file "./gold/c17_t4_out.txt" for writing.
-# No such file or directory. (errno = ENOENT)    : c17_tb.v(84)
-#    Time: 4 ns  Iteration: 0  Instance: /c17_tb
 # i=1,in=0
 # 
 # i=2,in=1
@@ -116,9 +101,6 @@
 # 
 # N22=1,N23=1
 # 
-# ** Warning: (vsim-3533) [FOFIW] - Failed to open file "./gold/c17_t5_out.txt" for writing.
-# No such file or directory. (errno = ENOENT)    : c17_tb.v(100)
-#    Time: 5 ns  Iteration: 0  Instance: /c17_tb
 # i=1,in=0
 # 
 # i=2,in=0
@@ -133,5 +115,5 @@
 # 
 # ** Note: $finish    : c17_tb.v(114)
 #    Time: 6 ns  Iteration: 0  Instance: /c17_tb
-# End time: 19:59:07 on Oct 20,2020, Elapsed time: 0:00:15
-# Errors: 0, Warnings: 7
+# End time: 20:20:57 on Oct 20,2020, Elapsed time: 0:00:16
+# Errors: 0, Warnings: 1

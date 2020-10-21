@@ -16,13 +16,13 @@ r1
 !i10b 1
 !s100 UmW@ZnGPKgD[g<iWW8=BO3
 I5V9OOnWg]JdVcXzO8eh_23
-Z1 dD:/study/EE 658/proj_p1/EE658_DFT-simulation/c17/modelsim
+Z1 dD:/study/EE 658/proj_p1/EE658_DFT/c17/modelsim
 w1602403511
 8c17.v
 Fc17.v
 L0 8
 Z2 OL;L;10.6e;65
-Z3 !s108 1603249131.000000
+Z3 !s108 1603250440.000000
 !s107 c17.v|
 !s90 -reportprogress|300|-work|work|c17.v|
 !i113 0
