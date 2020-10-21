@@ -42,7 +42,7 @@ def command():
                 print("Please enter an input_filename and an output_filename!")
         elif command_name[0] == 'tb_gen':
             if len(command_name) > 1:
-                ckt.testbench_generator(command_name[1])
+                ckt.testbench_generator(int(command_name[1]))
             else:
                 print("Please enter how many test vectors you want to generate!")
         else:
