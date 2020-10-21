@@ -1,21 +1,6 @@
 import re
 import random
-class Node:
-	def __init__(self, name: str, type:str):
-		self.name = name  # Node name
-		# Gate Type: ipt, opt, not, nand, and, nor, or, xor, xnor, buff
-		self.gate_type = type  # Indicate which logic gate type this node is
-		self.fan_in_node = []  # The list of fan-in nodes
-		self.fan_out_node = []  # The list of fan-out nodes
-		self.value = None  # the output value of this gate
-		self.level = -1    # the initial value (null) of the level
-		self.number_of_input_level_defined = 0
-
-	def __del__(self):
-		pass
-
-
-
+from Node_Struct import *
 class Circuit:
 	def __init__(self, filename):
 		self.circuit_name = None  # The circuit name
@@ -95,7 +80,24 @@ class Circuit:
 
 					else:
 						gate_order = line_syntax.group(3).replace(' ', '').split(',')
-						new_node = Node(line_syntax.group(2), line_syntax.group(1))
+						if line_syntax.group(1) == 'buf':
+							new_node = BUFF(line_syntax.group(2), line_syntax.group(1))
+						elif line_syntax.group(1) == 'not':
+							new_node = NOT(line_syntax.group(2), line_syntax.group(1))
+						elif line_syntax.group(1) == 'nor':
+							new_node = NOR(line_syntax.group(2), line_syntax.group(1))
+						elif line_syntax.group(1) == 'or':
+							new_node = OR(line_syntax.group(2), line_syntax.group(1))
+						elif line_syntax.group(1) == 'and':
+							new_node = AND(line_syntax.group(2), line_syntax.group(1))
+						elif line_syntax.group(1) == 'nand':
+							new_node = NAND(line_syntax.group(2), line_syntax.group(1))
+						elif line_syntax.group(1) == 'xor':
+							new_node = XOR(line_syntax.group(2), line_syntax.group(1))
+						elif line_syntax.group(1) == 'xnor':
+							new_node = XNOR(line_syntax.group(2), line_syntax.group(1))
+						else:
+							break
 						self.add_object(new_node)
 						#Default Output is 1, so the gate order is OIIIIIII...
 						for index in range(len(gate_order)):

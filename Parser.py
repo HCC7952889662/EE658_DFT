@@ -168,9 +168,3 @@ def file_check(file1,file2):
         print("result are not same!")
     origin_output_file.close()
     new_output_file.close()
-
-try:
-    command()
-
-except IOError:
-    print("error in the code")
