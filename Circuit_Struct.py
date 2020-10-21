@@ -285,6 +285,42 @@ class Circuit:
 		fw.write('endmodule\n')
 		fw.close()
 
+	def simulation(self,inputfilename,outputfilename):
+	    ipt=open(inputfilename,mode='r')
+	    fw=open(outputfilename,mode='w')
+	    for node in self.node_list:#reset
+	        node.value=0
+	    for line in ipt:
+	        line_split=line.split(",")
+	        for node in self.PI:
+	            if node.name==("N"+line_split[0]):
+	                node.value=int(line_split[1])
+	                #print(str(line_split[0])+",val="+str(node.value))
+	    level=1
+	    max_level=0
+	    for node in self.node_list:
+	        if node.level>max_level:
+	            max_level=node.level
+	    Done=0
+	    while(Done==0):
+	        for node in self.node_list:
+	            if node.level==level and node.gate_type!="opt":
+	                node.operation()
+	        if max_level==level:
+	            Done=1
+	        level+=1
+	    for node in self.node_list:
+	        if node.gate_type=="opt":
+	            for fin_node in node.fan_in_node:
+	                result=int(fin_node.value)
+	            node.value=result
+	    for node in self.node_list:
+	        if node.gate_type=="opt":
+	            fw.write(node.name.lstrip("N")+","+str(node.value)+"\n")
+	            print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value))
+	    ipt.close()
+	    fw.close()
+
 class connect():
 	def __init__(self,type, name):
 		self.type = type ##{'wire':1, 'reg':2}
