@@ -1,18 +1,20 @@
-from Circuit_Struct import *
+#from Circuit_Struct import *
+from Parser import *
 
+command()
 ############################################
 ############## Circuit_Parser ##############
 ############################################
-C = Circuit('./ckt/add2.v')
-C.pc()
+#C = Circuit('./ckt/add2.v')
+#C.pc()
 
 ############################################
 ##############  Levelization  ##############
 ############################################
-C.levelization('c17_lev.txt')
+#C.levelization('c17_lev.txt')
 
 ############################################
 ############# Circuit_Simulator ############
 ############################################
-C.testbench_generator(6)
+#C.testbench_generator(6)
 
