@@ -134,6 +134,11 @@ class Circuit:
 			for fo in obj.fan_out_node:
 				print(fo.name, end= ' ')
 			print('\n')
+	def lev_print(self):
+		print('Circuit Name: ', self.circuit_name)
+		print('#################### Node Information ####################')
+		for obj in self.node_list:
+			print(obj.name + ' : ' + str(obj.level))
 
 	def levelization(self, outputfilename):
 		# Step 0: Prepare a queue storing the finished nodes

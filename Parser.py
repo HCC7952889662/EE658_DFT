@@ -34,11 +34,6 @@ def command():
                 simulation(ckt,command_name[1],command_name[2])
             else:
                 print("Please enter an input_filename and an output_filename!")
-        elif command_name[0] == 'check':
-            if len(command_name) > 2:
-                file_check(command_name[1], command_name[2])
-            else:
-                print("Please enter an input_filename and an output_filename!")
         else:
             print("Command not found!")
 
@@ -130,38 +125,6 @@ def operation(node):
                 node.value= 0
             else:
                 node.value= 1
-
-def file_check(file1,file2):
-    origin_output_file = open(file1, "r+")
-    # print('reading', new_output_file)
-    new_output_file = open(file2, "r+")
-    number_of_line = 1
-    origin_line = origin_output_file.readline()
-    new_line = new_output_file.readline()
-    flag = 1
-    if len(origin_line) == 0:
-        print("original file is empty!")
-        flag = 0
-    if len(new_line) == 0:
-        print("new file is empty!")
-        flag = 0
-    if origin_line is not None and new_line is not None:
-        while origin_line:
-            if origin_line != new_line:
-                print('file different! different line is #', number_of_line)
-                flag = 0
-
-            else:
-                flag = 1
-            origin_line = origin_output_file.readline()
-            new_line = new_output_file.readline()
-            number_of_line += 1
-    if flag == 1:
-        print('result are the same')
-    else:
-        print("result are not same!")
-    origin_output_file.close()
-    new_output_file.close()
 
 try:
     command()
