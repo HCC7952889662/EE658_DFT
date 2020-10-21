@@ -1,5 +1,5 @@
 #from Circuit_Struct import *
-from Parser import *
+from Command import *
 class Node:
     def __init__(self, name: str, type:str):
         self.name = name  # Node name
