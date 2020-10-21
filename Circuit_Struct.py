@@ -33,7 +33,6 @@ class Circuit:
 		self.node_list.append(obj)               # the memory location of node, point to the node
 		self.node_name_list.append(obj.name)     # the name of node: N1,N2...
 
-
 	def add_PI(self, obj):
 		self.add_object(obj)
 		self.PI.append(obj)
@@ -118,7 +117,6 @@ class Circuit:
 					o.fan_in_node.append(i)
 					i.fan_out_node.append(o)
 
-
 	def pc(self):
 		print('Circuit Name: ', self.circuit_name)
 		print('Total PI:', len(self.PI))
@@ -134,11 +132,6 @@ class Circuit:
 			for fo in obj.fan_out_node:
 				print(fo.name, end= ' ')
 			print('\n')
-	def lev_print(self):
-		print('Circuit Name: ', self.circuit_name)
-		print('#################### Node Information ####################')
-		for obj in self.node_list:
-			print(obj.name + ' : ' + str(obj.level))
 
 	def levelization(self, outputfilename):
 		# Step 0: Prepare a queue storing the finished nodes
@@ -147,7 +140,7 @@ class Circuit:
 		for node in self.PI:
 			node.level = 0
 			for dnode in node.fan_out_node:
-				dnode.number_of_input_level_defined += 1;
+				dnode.number_of_input_level_defined += 1
 				# Step 2: Checking whether number_of_input_level_defined is the same as fin
 				if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
 					# if it is the same, then put this ready node into the queue
@@ -166,7 +159,7 @@ class Circuit:
 				max_level = node.fan_in_node[0].level
 				for n in node.fan_in_node:
 					max_level = max(max_level, n.level)
-				node.level = max_level + 1;
+				node.level = max_level + 1
 			else:
 				node.level = node.fan_in_node[0].level
 			# Step 4: Repeat the Step2 and Do Queue Maintainence
@@ -196,7 +189,7 @@ class Circuit:
 		fw.close()
 
 	def test_pattern_generator(self, index):
-		dir = './' + str(self.circuit_name) + '/input/'
+		dir = './ckt/' + str(self.circuit_name) + '/input/'
 		filename = self.circuit_name + '_t' + str(index) + '.txt'
 		fw = open(dir + filename, mode='w')
 		for pi in self.PI:
@@ -204,7 +197,7 @@ class Circuit:
 		fw.close()
 
 	def testbench_generator(self, number_of_testbench):
-		dir = './' + str(self.circuit_name) + '/'
+		dir = './ckt/' + str(self.circuit_name) + '/'
 		fw = open(dir + str(self.circuit_name) + "_tb.v", mode='w')
 		fw.write("`timescale 1ns/1ns" + "\n")
 		fw.write('module ' + str(self.circuit_name) + "_tb;" + '\n')
