@@ -15,4 +15,3 @@ sh compile.sh
 - [x] Gate-Level Verilog file Parser
 - [x] Circuit Levelization
 - [x] Circuit Simulation
-*******
