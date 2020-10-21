@@ -1,5 +1,5 @@
 import re
-
+import random
 class Node:
 	def __init__(self, name: str, type:str):
 		self.name = name  # Node name
@@ -188,6 +188,101 @@ class Circuit:
 		for obj in self.node_list:
 			print(obj.name + ' : ' + str(obj.level))
 			fw.write(obj.name + ' ' + str(obj.level)+"\n")
+		fw.close()
+
+	def test_pattern_generator(self, index):
+		dir = './ckt/' + str(self.circuit_name) + '/input/'
+		filename = self.circuit_name + '_t' + str(index) + '.txt'
+		fw = open(dir + filename, mode='w')
+		for pi in self.PI:
+			fw.write(pi.name[1:] + ',' + str(random.randint(0,1)) + '\n')
+		fw.close()
+
+	def testbench_generator(self, number_of_testbench):
+		dir = './ckt/' + str(self.circuit_name) + '/modelsim/'
+		fw = open(dir + str(self.circuit_name) + "_tb.v", mode='w')
+		fw.write("`timescale 1ns/1ns" + "\n")
+		fw.write('module ' + str(self.circuit_name) + "_tb.v;" + '\n')
+		fw.write("integer ")
+		for i in range(number_of_testbench):
+			fw.write('fi' + str(i) + ',fi' + str(i))
+			if i != number_of_testbench-1:
+				fw.write(',')
+			else:
+				fw.write(';\n')
+
+		fw.write('integer statusI;\n')
+		fw.write('integer in_name;\n')
+		fw.write('reg in [0:' + str(len(self.PI)-1) + '];\n')
+		fw.write('wire out [0:' + str(len(self.PO) - 1) + '];\n')
+		fw.write('reg clk;\n')
+		fw.write('integer i;\n\n')
+		fw.write(str(self.circuit_name) + ' u_' + str(self.circuit_name) + ' (')
+		in_index = 0
+		for pi in self.PI:
+			fw.write('.' + pi.name + '(in[' + str(in_index) + ']),')
+			in_index += 1
+		out_index = 0
+		for po in self.PO:
+			fw.write('.' + po.name + '(in[' + str(in_index) + '])')
+			if out_index != len(self.PO)-1:
+				fw.write(',')
+				out_index += 1
+			else:
+				fw.write(');\n')
+
+		fw.write('initial begin\n')
+		for i in range(number_of_testbench):
+			self.test_pattern_generator(i)
+			fw.write('\ti = 0;\n')
+			fw.write('\t//test pattern' + str(i) + '\n')
+			fw.write('\tfi' + str(i) +' = $fopen("./input/' + str(self.circuit_name)+ '_t' + str(i) + '.txt","r");\n')
+			fw.write('\tfo' + str(i) + ' = $fopen("./output/' + str(self.circuit_name) + '_t' + str(i) + '.txt","w");\n')
+			fw.write('\twhile (i<=' + str(len(self.PI)-1) + ') begin\n')
+			fw.write('\t\tstatusI = $fscanf(fi' + str(i) + ',"%d,%b\\n",in_name,in[i]);\n')
+			fw.write('\t\t$display("i=%0d,in=%b\\n",in_name,in[i]);\n')
+			fw.write('\t\ti = i + 1;\n')
+			fw.write('\tend\n')
+			fw.write('\ti = 0;\n')
+			fw.write('\t#1\n')
+			fw.write('\t$display("')
+			out_index = 0
+			for po in self.PO:
+				fw.write(po.name + '=%b')
+				if out_index != len(self.PO) - 1:
+					fw.write(',')
+					out_index += 1
+				else:
+					fw.write('\\n",')
+					for j in range(len(self.PO)):
+						fw.write('out[' + str(j) + ']')
+						if j != len(self.PO) - 1:
+							fw.write(',')
+							out_index += 1
+						else:
+							fw.write(');\n')
+			fw.write('\t$fwrite(fo' + str(i) + ',"')
+			out_index = 0
+			for po in self.PO:
+				fw.write(po.name[1:] + '=%b')
+				if out_index != len(self.PO) - 1:
+					fw.write(',')
+					out_index += 1
+				else:
+					fw.write('\\n",')
+					for j in range(len(self.PO)):
+						fw.write('out[' + str(j) + ']')
+						if j != len(self.PO) - 1:
+							fw.write(',')
+							out_index += 1
+						else:
+							fw.write(');\n')
+
+			fw.write('\t$fclose(fi' + str(i) + ');\n')
+			fw.write('\t$fclose(fo' + str(i) + ');\n')
+
+		fw.write('end\n')
+		fw.write('endmodule\n')
 		fw.close()
 
 class connect():
