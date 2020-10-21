@@ -17,7 +17,7 @@ initial begin
 
 	//test pattern0
 	fi0 = $fopen("./input/c17_t0.txt","r");
-	fo0 = $fopen("./output/c17_t0_out.txt","w");
+	fo0 = $fopen("./gold/c17_t0_out.txt","w");
 	while (i<=4) begin
 		statusI = $fscanf(fi0,"%d,%b\n",in_name,in[i]);
 		$display("i=%0d,in=%b\n",in_name,in[i]);
@@ -33,7 +33,7 @@ initial begin
 	
 	//test pattern1
 	fi1 = $fopen("./input/c17_t1.txt","r");
-	fo1 = $fopen("./output/c17_t1_out.txt","w");
+	fo1 = $fopen("./gold/c17_t1_out.txt","w");
 	while (i<=4) begin
 		statusI = $fscanf(fi1,"%d,%b\n",in_name,in[i]);
 		$display("i=%0d,in=%b\n",in_name,in[i]);
@@ -49,7 +49,7 @@ initial begin
 	
 	//test pattern2
 	fi2 = $fopen("./input/c17_t2.txt","r");
-	fo2 = $fopen("./output/c17_t2_out.txt","w");
+	fo2 = $fopen("./gold/c17_t2_out.txt","w");
 	while (i<=4) begin
 		statusI = $fscanf(fi2,"%d,%b\n",in_name,in[i]);
 		$display("i=%0d,in=%b\n",in_name,in[i]);
@@ -65,7 +65,7 @@ initial begin
 	
 	//test pattern3
 	fi3 = $fopen("./input/c17_t3.txt","r");
-	fo3 = $fopen("./output/c17_t3_out.txt","w");
+	fo3 = $fopen("./gold/c17_t3_out.txt","w");
 	while (i<=4) begin
 		statusI = $fscanf(fi3,"%d,%b\n",in_name,in[i]);
 		$display("i=%0d,in=%b\n",in_name,in[i]);
@@ -81,7 +81,7 @@ initial begin
 	
 	//test pattern4
 	fi4 = $fopen("./input/c17_t4.txt","r");
-	fo4 = $fopen("./output/c17_t4_out.txt","w");
+	fo4 = $fopen("./gold/c17_t4_out.txt","w");
 	while (i<=4) begin
 		statusI = $fscanf(fi4,"%d,%b\n",in_name,in[i]);
 		$display("i=%0d,in=%b\n",in_name,in[i]);
@@ -97,7 +97,7 @@ initial begin
 	
 	//test pattern5
 	fi5 = $fopen("./input/c17_t5.txt","r");
-	fo5 = $fopen("./output/c17_t5_out.txt","w");
+	fo5 = $fopen("./gold/c17_t5_out.txt","w");
 	while (i<=4) begin
 		statusI = $fscanf(fi5,"%d,%b\n",in_name,in[i]);
 		$display("i=%0d,in=%b\n",in_name,in[i]);
@@ -111,7 +111,7 @@ initial begin
 	$fclose(fi5);
 	$fclose(fo5);
 
-	$stop;	
+	$finish;	
 end
 
 endmodule
