@@ -1,6 +1,6 @@
 `timescale 1ns/1ns
 module add2_tb;
-integer fi0,fo0,fi1,fo1,fi2,fo2,fi3,fo3,fi4,fo4,fi5,fo5;
+integer fi0,fo0,fi1,fo1,fi2,fo2,fi3,fo3,fi4,fo4;
 integer statusI;
 integer in_name;
 reg in [0:4];
@@ -85,21 +85,6 @@ initial begin
 	$fwrite(fo4,"50,%b\n51,%b\n52,%b\n",out[0],out[1],out[2]);
 	$fclose(fi4);
 	$fclose(fo4);
-	i = 0;
-	//test pattern5
-	fi5 = $fopen("./input/add2_t5.txt","r");
-	fo5 = $fopen("./gold/add2_t5_out.txt","w");
-	while (i<=4) begin
-		statusI = $fscanf(fi5,"%d,%b\n",in_name,in[i]);
-		$display("i=%0d,in=%b\n",in_name,in[i]);
-		i = i + 1;
-	end
-	i = 0;
-	#1
-	$display("N50=%b,N51=%b,N52=%b\n",out[0],out[1],out[2]);
-	$fwrite(fo5,"50,%b\n51,%b\n52,%b\n",out[0],out[1],out[2]);
-	$fclose(fi5);
-	$fclose(fo5);
 	$finish;
 end
 endmodule
