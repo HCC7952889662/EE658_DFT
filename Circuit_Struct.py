@@ -291,6 +291,20 @@ class Circuit:
 		fw.write('end\n')
 		fw.write('endmodule\n')
 		fw.close()
+		#create run.bat
+		dir = './' + str(self.circuit_name) + '/'
+		fw = open(dir + "run.bat", mode='w')
+		fw.write('vsim -do do_'+str(self.circuit_name)+'.do')
+		fw.close()
+		#create run.do
+		fw = open(dir + 'do_'+str(self.circuit_name)+'.do', mode='w')
+		fw.write('vlib work')
+		fw.write('vmap work work')
+		fw.close('vlog -work work '+str(self.circuit_name)+'.v')
+		fw.close('vlog -work work '+str(self.circuit_name)+'_tb.v')
+		fw.write('onerror {resume}')
+		fw.write('vsim -novopt work.'+str(self.circuit_name)+'_tb')
+		fw.write('run -all')
 
 	#def simulation(self,inputfilename,outputfilename):
 	def simulation(self,test_pattern_count):
