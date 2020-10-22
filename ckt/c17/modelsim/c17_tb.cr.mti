@@ -1,8 +1,0 @@
-{D:/study/EE 658/proj_p1/EE658_DFT-simulation/c17/modelsim/c17.v} {1 {vlog -work work -vopt -stats=none {D:/study/EE 658/proj_p1/EE658_DFT-simulation/c17/modelsim/c17.v}
-Model Technology ModelSim SE-64 vlog 10.6e Compiler 2018.06 Jun 23 2018
--- Compiling module c17
-
-Top level modules:
-	c17
-
-} {} {}}
