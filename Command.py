@@ -68,6 +68,7 @@ class Command:
 
     #def file_check(self,file1,file2):
     def file_check(self,ckt):
+        self.test_pattern_count=5
         for i in range(0,self.test_pattern_count):
             #print(str(i))
             origin_output_file = open('./ckt/'+ckt.circuit_name+'/output/'+ckt.circuit_name+'_t'+str(i)+'_out.txt', "r+")
@@ -86,7 +87,7 @@ class Command:
                 flag = 0
             if origin_line is not None and new_line is not None:
                 while origin_line:
-                    if origin_line != new_line:
+                    if origin_line.lower() != new_line.lower():
                         print('file different! different line is #', number_of_line)
                         flag = 0
 

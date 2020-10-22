@@ -1,6 +1,6 @@
 `timescale 1ns/1ns
 module c17_tb;
-integer fi0,fo0;
+integer fi0,fo0,fi1,fo1,fi2,fo2,fi3,fo3,fi4,fo4;
 integer statusI;
 integer in_name;
 reg in [0:4];
@@ -25,6 +25,66 @@ initial begin
 	$fwrite(fo0,"22,%b\n23,%b\n",out[0],out[1]);
 	$fclose(fi0);
 	$fclose(fo0);
+	i = 0;
+	//test pattern1
+	fi1 = $fopen("./input/c17_t1.txt","r");
+	fo1 = $fopen("./gold/c17_t1_out.txt","w");
+	while (i<=4) begin
+		statusI = $fscanf(fi1,"%d,%b\n",in_name,in[i]);
+		$display("i=%0d,in=%b\n",in_name,in[i]);
+		i = i + 1;
+	end
+	i = 0;
+	#1
+	$display("N22=%b,N23=%b\n",out[0],out[1]);
+	$fwrite(fo1,"22,%b\n23,%b\n",out[0],out[1]);
+	$fclose(fi1);
+	$fclose(fo1);
+	i = 0;
+	//test pattern2
+	fi2 = $fopen("./input/c17_t2.txt","r");
+	fo2 = $fopen("./gold/c17_t2_out.txt","w");
+	while (i<=4) begin
+		statusI = $fscanf(fi2,"%d,%b\n",in_name,in[i]);
+		$display("i=%0d,in=%b\n",in_name,in[i]);
+		i = i + 1;
+	end
+	i = 0;
+	#1
+	$display("N22=%b,N23=%b\n",out[0],out[1]);
+	$fwrite(fo2,"22,%b\n23,%b\n",out[0],out[1]);
+	$fclose(fi2);
+	$fclose(fo2);
+	i = 0;
+	//test pattern3
+	fi3 = $fopen("./input/c17_t3.txt","r");
+	fo3 = $fopen("./gold/c17_t3_out.txt","w");
+	while (i<=4) begin
+		statusI = $fscanf(fi3,"%d,%b\n",in_name,in[i]);
+		$display("i=%0d,in=%b\n",in_name,in[i]);
+		i = i + 1;
+	end
+	i = 0;
+	#1
+	$display("N22=%b,N23=%b\n",out[0],out[1]);
+	$fwrite(fo3,"22,%b\n23,%b\n",out[0],out[1]);
+	$fclose(fi3);
+	$fclose(fo3);
+	i = 0;
+	//test pattern4
+	fi4 = $fopen("./input/c17_t4.txt","r");
+	fo4 = $fopen("./gold/c17_t4_out.txt","w");
+	while (i<=4) begin
+		statusI = $fscanf(fi4,"%d,%b\n",in_name,in[i]);
+		$display("i=%0d,in=%b\n",in_name,in[i]);
+		i = i + 1;
+	end
+	i = 0;
+	#1
+	$display("N22=%b,N23=%b\n",out[0],out[1]);
+	$fwrite(fo4,"22,%b\n23,%b\n",out[0],out[1]);
+	$fclose(fi4);
+	$fclose(fo4);
 	$finish;
 end
 endmodule
