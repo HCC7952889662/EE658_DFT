@@ -298,13 +298,13 @@ class Circuit:
 		fw.close()
 		#create run.do
 		fw = open(dir + 'do_'+str(self.circuit_name)+'.do', mode='w')
-		fw.write('vlib work')
-		fw.write('vmap work work')
-		fw.write('vlog -work work '+str(self.circuit_name)+'.v')
-		fw.write('vlog -work work '+str(self.circuit_name)+'_tb.v')
+		fw.write('vlib work\n')
+		fw.write('vmap work work\n')
+		fw.write('vlog -work work '+str(self.circuit_name)+'.v\n')
+		fw.write('vlog -work work '+str(self.circuit_name)+'_tb.v\n')
 		fw.write('onerror {resume}')
-		fw.write('vsim -novopt work.'+str(self.circuit_name)+'_tb')
-		fw.write('run -all')
+		fw.write('vsim -novopt work.'+str(self.circuit_name)+'_tb\n')
+		fw.write('run -all\n')
 		fw.close()
 
 	#def simulation(self,inputfilename,outputfilename):
