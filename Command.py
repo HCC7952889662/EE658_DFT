@@ -57,7 +57,7 @@ class Command:
                     #self.file_check(command_name[1], command_name[2])
                 #else:
                 #    print("Please enter an input_filename and an output_filename!")
-                input("Press Enter key to continue after you run the simulation in ModelSim!")
+                input("Press Enter to continue after you run the simulation in ModelSim!")
                 self.file_check(ckt)
                 break
             elif command_name[0] == 'tb_gen':
