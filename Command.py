@@ -81,8 +81,8 @@ class Command:
         self.test_pattern_count=5
         for i in range(0,self.test_pattern_count):
             #print(str(i))
-            origin_output_file = open('./ckt/'+ckt.circuit_name+'/output/'+ckt.circuit_name+'_t'+str(i)+'_out.txt', "r+")
-            new_output_file = open('./ckt/'+ckt.circuit_name+'/gold/'+ckt.circuit_name+'_t'+str(i)+'_out.txt', "r+")
+            origin_output_file = open('./'+ckt.circuit_name+'/output/'+ckt.circuit_name+'_t'+str(i)+'_out.txt', "r+")
+            new_output_file = open('./'+ckt.circuit_name+'/gold/'+ckt.circuit_name+'_t'+str(i)+'_out.txt', "r+")
             number_of_line = 1
             origin_line = origin_output_file.readline()
             #print(origin_line)
