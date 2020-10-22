@@ -300,7 +300,7 @@ class Circuit:
 		fw = open(dir + 'do_'+str(self.circuit_name)+'.do', mode='w')
 		fw.write('vlib work')
 		fw.write('vmap work work')
-		fw.wrtie('vlog -work work '+str(self.circuit_name)+'.v')
+		fw.write('vlog -work work '+str(self.circuit_name)+'.v')
 		fw.write('vlog -work work '+str(self.circuit_name)+'_tb.v')
 		fw.write('onerror {resume}')
 		fw.write('vsim -novopt work.'+str(self.circuit_name)+'_tb')
