@@ -22,6 +22,7 @@ class Command:
                 if len(command_name)>1:
                     ckt=Circuit(command_name[1])
                     #ckt.verilog_parser(command_name[1])
+                    self.check_create_folder('./' + ckt.circuit_name)
                 else:
                     print("Please enter an input file name!")
             elif command_name[0]=="pc":
@@ -39,7 +40,8 @@ class Command:
                 Done=1
             elif command_name[0]=="lev":
                 if len(command_name)>1:
-                    ckt.levelization(command_name[1])
+                    self.check_create_folder('./' + ckt.circuit_name + '/lev')
+                    ckt.levelization('./' + ckt.circuit_name + '/lev/' + command_name[1])
                 else:
                     print("Please enter an output file name!")
             elif command_name[0]=="logicsim":
@@ -58,6 +60,9 @@ class Command:
                 break
             elif command_name[0] == 'tb_gen':
                 if len(command_name) > 1:
+                    self.check_create_folder('./' + ckt.circuit_name + '/input')
+                    self.check_create_folder('./' + ckt.circuit_name + '/output')
+                    self.check_create_folder('./' + ckt.circuit_name + '/gold')
                     ckt.testbench_generator(int(command_name[1]))
                     self.test_pattern_count=int(command_name[1])
                 else:
@@ -65,6 +70,11 @@ class Command:
             else:
                 print("Command not found!")
         infile.close()
+
+    def check_create_folder(self, dir_path):
+        if os.path.exists(dir_path) == False:
+            os.mkdir(dir_path)
+
 
     #def file_check(self,file1,file2):
     def file_check(self,ckt):

@@ -177,7 +177,7 @@ class Circuit:
 			self.lev_recursive_part(queue)
 
 	def lev_print(self,outputfilename):
-		fw=open('./ckt/'+self.circuit_name+'/'+outputfilename,mode='w')
+		fw=open(outputfilename,mode='w')
 		fw.write(self.circuit_name+"\n")
 		fw.write("#PI: "+str(len(self.PI))+"\n")
 		fw.write("#PO: "+str(len(self.PO))+"\n")
@@ -191,7 +191,7 @@ class Circuit:
 		fw.close()
 
 	def test_pattern_generator(self, index):
-		dir = './ckt/' + str(self.circuit_name) + '/input/'
+		dir = './' + self.circuit_name + '/input/'
 		filename = self.circuit_name + '_t' + str(index) + '.txt'
 		fw = open(dir + filename, mode='w')
 		for pi in self.PI:
@@ -206,7 +206,7 @@ class Circuit:
 		fw.close()
 
 	def testbench_generator(self, number_of_testbench):
-		dir = './ckt/' + str(self.circuit_name) + '/'
+		dir = './' + self.circuit_name + '/'
 		fw = open(dir + str(self.circuit_name) + "_tb.v", mode='w')
 		fw.write("`timescale 1ns/1ns" + "\n")
 		fw.write('module ' + str(self.circuit_name) + "_tb;" + '\n')
@@ -296,46 +296,46 @@ class Circuit:
 	def simulation(self,test_pattern_count):
 		#phase1 code
 		for i in range(0,test_pattern_count):
-		    ipt=open('./ckt/'+self.circuit_name+'/input/'+self.circuit_name+'_t'+str(i)+'.txt',mode='r')
-		    fw=open('./ckt/'+self.circuit_name+'/output/'+self.circuit_name+'_t'+str(i)+'_out.txt',mode='w')
-		    for node in self.node_list:#reset
-		        #node.value=0
-		        node.value=""
-		    for line in ipt:
-		        line_split=line.split(",")
-		        for node in self.PI:
-		            if node.name==("N"+line_split[0]):
-		                #node.value=int(line_split[1])
-		                node.value=line_split[1][:-1]
-		                #print(str(line_split[0])+",val="+str(node.value))
-		    level=1
-		    max_level=0
-		    for node in self.node_list:
-		        if node.level>max_level:
-		            max_level=node.level
-		    Done=0
-		    while(Done==0):
-		        for node in self.node_list:
-		            if node.level==level and node.gate_type!="opt":
-		                #print("---"+node.name+",val="+node.value)
-		                node.operation()
-		                #print("-----"+node.name+",val="+node.value)
-		        if max_level==level:
-		            Done=1
-		        level+=1
-		    for node in self.node_list:
-		        #print("---"+node.name+",val="+node.value)
-		        if node.gate_type=="opt":
-		            for fin_node in node.fan_in_node:
-		                #result=int(fin_node.value)
-		                result=fin_node.value
-		            node.value=result
-		    for node in self.node_list:
-		        if node.gate_type=="opt":
-		            fw.write(node.name.lstrip("N")+","+str(node.value)+"\n")
-		            print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value))
-		    ipt.close()
-		    fw.close()
+			ipt=open('./'+self.circuit_name+'/input/'+self.circuit_name+'_t'+str(i)+'.txt',mode='r')
+			fw=open('./'+self.circuit_name+'/output/'+self.circuit_name+'_t'+str(i)+'_out.txt',mode='w')
+			for node in self.node_list:#reset
+				#node.value=0
+				node.value=""
+			for line in ipt:
+				line_split=line.split(",")
+				for node in self.PI:
+					if node.name==("N"+line_split[0]):
+						#node.value=int(line_split[1])
+						node.value=line_split[1][:-1]
+						#print(str(line_split[0])+",val="+str(node.value))
+			level=1
+			max_level=0
+			for node in self.node_list:
+				if node.level>max_level:
+					max_level=node.level
+			Done=0
+			while(Done==0):
+				for node in self.node_list:
+					if node.level==level and node.gate_type!="opt":
+						#print("---"+node.name+",val="+node.value)
+						node.operation()
+						#print("-----"+node.name+",val="+node.value)
+				if max_level==level:
+					Done=1
+				level+=1
+			for node in self.node_list:
+				#print("---"+node.name+",val="+node.value)
+				if node.gate_type=="opt":
+					for fin_node in node.fan_in_node:
+						#result=int(fin_node.value)
+						result=fin_node.value
+					node.value=result
+			for node in self.node_list:
+				if node.gate_type=="opt":
+					fw.write(node.name.lstrip("N")+","+str(node.value)+"\n")
+					print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value))
+			ipt.close()
+			fw.close()
 		#phase2
 
 
