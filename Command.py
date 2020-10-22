@@ -1,6 +1,7 @@
 # Executed in Python 3.6
 from Circuit_Struct import *
 import os
+from shutil import copyfile
 class Command:
     def __init__(self):
         self.test_pattern_count = 0
@@ -23,6 +24,7 @@ class Command:
                     ckt=Circuit(command_name[1])
                     #ckt.verilog_parser(command_name[1])
                     self.check_create_folder('./' + ckt.circuit_name)
+                    copyfile(command_name[1], './' + ckt.circuit_name + '/' + ckt.circuit_name + '.v')
                 else:
                     print("Please enter an input file name!")
             elif command_name[0]=="pc":
