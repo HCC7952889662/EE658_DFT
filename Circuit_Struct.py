@@ -294,7 +294,7 @@ class Circuit:
 		#create run.bat
 		dir = './' + str(self.circuit_name) + '/'
 		fw = open(dir + "run.sh", mode='w')
-		fw.write('vsim -do do_'+str(self.circuit_name)+'.do')
+		fw.write('vsim -do do_'+str(self.circuit_name)+'.do\n')
 		fw.close()
 		#create run.do
 		fw = open(dir + 'do_'+str(self.circuit_name)+'.do', mode='w')
@@ -302,7 +302,7 @@ class Circuit:
 		fw.write('vmap work work\n')
 		fw.write('vlog -work work '+str(self.circuit_name)+'.v\n')
 		fw.write('vlog -work work '+str(self.circuit_name)+'_tb.v\n')
-		fw.write('onerror {resume}')
+		fw.write('onerror {resume}\n')
 		fw.write('vsim -novopt work.'+str(self.circuit_name)+'_tb\n')
 		fw.write('run -all\n')
 		fw.close()
