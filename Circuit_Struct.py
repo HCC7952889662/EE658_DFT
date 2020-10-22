@@ -293,7 +293,7 @@ class Circuit:
 		fw.close()
 		#create run.bat
 		dir = './' + str(self.circuit_name) + '/'
-		fw = open(dir + "run.bat", mode='w')
+		fw = open(dir + "run.sh", mode='w')
 		fw.write('vsim -do do_'+str(self.circuit_name)+'.do')
 		fw.close()
 		#create run.do
