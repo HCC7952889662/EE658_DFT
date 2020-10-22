@@ -191,6 +191,9 @@ class Circuit:
 		fw.close()
 
 	def test_pattern_generator(self, index):
+		os.makedirs('./ckt/' + str(self.circuit_name) + '/input/', exist_ok=True)
+		os.makedirs('./ckt/' + str(self.circuit_name) + '/gold/', exist_ok=True)
+		os.makedirs('./ckt/' + str(self.circuit_name) + '/output/', exist_ok=True)
 		dir = './ckt/' + str(self.circuit_name) + '/input/'
 		filename = self.circuit_name + '_t' + str(index) + '.txt'
 		fw = open(dir + filename, mode='w')

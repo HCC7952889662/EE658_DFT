@@ -1,1 +1,0 @@
-vsim -do do_add2.do
