@@ -58,7 +58,7 @@ class NAND(Node):
             #print(fin_node.value)
             if fin_node.value == '0':
                 self.value = '1'
-                break;
+                break
             elif fin_node.value == 'X':
                 self.value = 'X'
 
@@ -78,7 +78,7 @@ class NOR(Node):
         for fin_node in self.fan_in_node:
             if int(fin_node.value) == '1':
                 self.value = '0'
-                break;
+                break
             elif fin_node.value == 'X':
                 self.value = 'X'
 
@@ -98,7 +98,7 @@ class AND(Node):
         for fin_node in self.fan_in_node:
             if int(fin_node.value) == '0':
                 self.value = '0'
-                break;
+                break
             elif fin_node.value == 'X':
                 self.value = 'X'
 
@@ -118,7 +118,7 @@ class OR(Node):
         for fin_node in self.fan_in_node:
             if int(fin_node.value) == '1':
                 self.value = '1'
-                break;
+                break
             elif fin_node.value == 'X':
                 self.value = 'X'
 
