@@ -3,7 +3,7 @@
 
 ## Fast Simulation:
 ```Bash
-sh compile.sh
+python3 main.py
 ```
 ## Members
 * [Ruochen Ma](https://github.com/ruochen627)
