@@ -248,7 +248,7 @@ class Circuit:
 		fw.write('\tfi = $fopen("./input/' + str(self.circuit_name) + '_single.txt","r");\n')
 		fw.write('\tstatusI = $fscanf(fi,"')
 		for j in range(len(self.PI)):
-			fw.write('%h')
+			fw.write('%s')
 			if j != len(self.PI) - 1:
 				fw.write(',')
 			else:
