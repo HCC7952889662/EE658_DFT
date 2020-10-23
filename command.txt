@@ -1,4 +1,4 @@
-read ./netlist/c6288.v
+read ./netlist/c880.v
 lev c880_lev.txt
 tb_gen 300
 logicsim
