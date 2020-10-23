@@ -1,8 +1,7 @@
 #from Circuit_Struct import *
 from Command import *
 
-command=Command()
-command.command()
+Command().command()
 ############################################
 ############## Circuit_Parser ##############
 ############################################

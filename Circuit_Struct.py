@@ -190,21 +190,7 @@ class Circuit:
 			fw.write(obj.name + ' ' + str(obj.level)+"\n")
 		fw.close()
 
-	def test_pattern_generator(self, index, number_of_testbench):
-		#create separate input file
-		dir = './' + self.circuit_name + '/input/'
-		filename = self.circuit_name + '_t' + str(index) + '.txt'
-		fw = open(dir + filename, mode='w')
-		for pi in self.PI:
-			#fw.write(pi.name[1:] + ',' + str(random.randint(0,1)) + '\n')
-			
-			random_int=random.randint(0,2)
-			if random_int==2:
-				fw.write(pi.name[1:] + ',X' + '\n')
-			else:
-				fw.write(pi.name[1:] + ',' + str(random_int) + '\n')
-			
-		fw.close()
+	def test_pattern_generator(self, number_of_testbench):
 		#create single file with multiple input patterns
 		dir = './' + self.circuit_name + '/input/'
 		filename = self.circuit_name + '_single.txt'
@@ -232,24 +218,18 @@ class Circuit:
 		fw.close()
 
 	def testbench_generator(self, number_of_testbench):
+		self.test_pattern_generator(number_of_testbench)
 		dir = './' + self.circuit_name + '/'
 		fw = open(dir + str(self.circuit_name) + "_tb.v", mode='w')
 		fw.write("`timescale 1ns/1ns" + "\n")
 		fw.write('module ' + str(self.circuit_name) + "_tb;" + '\n')
-		fw.write("integer ")
-		for i in range(number_of_testbench):
-			fw.write('fi' + str(i) + ',fo' + str(i))
-			if i != number_of_testbench-1:
-				fw.write(',')
-			else:
-				fw.write(';\n')
-
+		fw.write("integer fi, fo;\n")
 		fw.write('integer statusI;\n')
 		fw.write('integer in_name;\n')
 		fw.write('reg in [0:' + str(len(self.PI)-1) + '];\n')
 		fw.write('wire out [0:' + str(len(self.PO) - 1) + '];\n')
 		fw.write('reg clk;\n')
-		fw.write('integer i;\n\n')
+		fw.write('\n')
 		fw.write(str(self.circuit_name) + ' u_' + str(self.circuit_name) + ' (')
 		in_index = 0
 		for pi in self.PI:
@@ -265,23 +245,75 @@ class Circuit:
 				fw.write(');\n')
 
 		fw.write('initial begin\n')
+		fw.write('\tfi = $fopen("./input/' + str(self.circuit_name) + '_single.txt","r");\n')
+		fw.write('\tstatusI = $fscanf(fi,"')
+		for j in range(len(self.PI)):
+			fw.write('%h')
+			if j != len(self.PI) - 1:
+				fw.write(',')
+			else:
+				fw.write('\\n",')
+		for j in range(len(self.PI)):
+			fw.write('in[' + str(j) + ']')
+			if j != len(self.PI) - 1:
+				fw.write(',')
+			else:
+				fw.write(');\n')
+		fw.write('\t#1\n')
+
+		fw.write('\tfo = $fopen("./gold/golden_' + str(self.circuit_name) + '.txt","w");\n')
+		fw.write('\tfo = $fopen("./gold/golden_' + str(self.circuit_name) + '.txt","a");\n')
+		fw.write('\t$fwrite(fo,"Inputs: ')
+		in_index = 0
+		for pi in self.PI:
+			fw.write(pi.name)
+			if in_index != len(self.PI) - 1:
+				fw.write(',')
+				in_index += 1
+			else:
+				fw.write('\\n");\n')
+		fw.write('\t$fwrite(fo,"Outputs: ')
+		out_index = 0
+		for pi in self.PO:
+			fw.write(pi.name)
+			if out_index != len(self.PO) - 1:
+				fw.write(',')
+				out_index += 1
+			else:
+				fw.write('\\n");\n')
 		for i in range(number_of_testbench):
-			self.test_pattern_generator(i,number_of_testbench)
-			fw.write('\ti = 0;\n')
 			fw.write('\t//test pattern' + str(i) + '\n')
-			fw.write('\tfi' + str(i) +' = $fopen("./input/' + str(self.circuit_name)+ '_t' + str(i) + '.txt","r");\n')
-			fw.write('\tfo' + str(i) + ' = $fopen("./gold/' + str(self.circuit_name) + '_t' + str(i) + '_out.txt","w");\n')
-			fw.write('\twhile (i<=' + str(len(self.PI)-1) + ') begin\n')
-			fw.write('\t\tstatusI = $fscanf(fi' + str(i) + ',"%d,%b\\n",in_name,in[i]);\n')
-			fw.write('\t\t$display("i=%0d,in=%b\\n",in_name,in[i]);\n')
-			fw.write('\t\ti = i + 1;\n')
-			fw.write('\tend\n')
-			fw.write('\ti = 0;\n')
+			fw.write('\tstatusI = $fscanf(fi,"')
+			for j in range(len(self.PI)):
+				fw.write('%h')
+				if j != len(self.PI) - 1:
+					fw.write(',')
+				else:
+					fw.write('\\n",')
+			for j in range(len(self.PI)):
+				fw.write('in[' + str(j) + ']')
+				if j != len(self.PI) - 1:
+					fw.write(',')
+				else:
+					fw.write(');\n')
 			fw.write('\t#1\n')
+			fw.write('\t$display("')
+			for j in range(len(self.PI)):
+				fw.write('%h')
+				if j != len(self.PI) - 1:
+					fw.write(',')
+				else:
+					fw.write('\\n",')
+			for j in range(len(self.PI)):
+				fw.write('in[' + str(j) + ']')
+				if j != len(self.PI) - 1:
+					fw.write(',')
+				else:
+					fw.write(');\n')
 			fw.write('\t$display("')
 			out_index = 0
 			for po in self.PO:
-				fw.write(po.name + '=%b')
+				fw.write(po.name + '=%h')
 				if out_index != len(self.PO) - 1:
 					fw.write(',')
 					out_index += 1
@@ -294,24 +326,37 @@ class Circuit:
 							out_index += 1
 						else:
 							fw.write(');\n')
-			fw.write('\t$fwrite(fo' + str(i) + ',"')
-			out_index = 0
-			for po in self.PO:
-				fw.write(po.name[1:] + ',%b\\n')
-				if out_index != len(self.PO) - 1:
-					out_index += 1
+			fw.write('\t$fwrite(fo, "Test # = ' + str(i) + '\\n");\n')
+			fw.write('\t$fwrite(fo,"')
+			for j in range(len(self.PI)):
+				fw.write('%h')
+				if j != len(self.PI) - 1:
+					fw.write(',')
 				else:
-					fw.write('",')
-					for j in range(len(self.PO)):
-						fw.write('out[' + str(j) + ']')
-						if j != len(self.PO) - 1:
-							fw.write(',')
-							out_index += 1
-						else:
-							fw.write(');\n')
+					fw.write('\\n",')
+			for j in range(len(self.PI)):
+				fw.write('in[' + str(j) + ']')
+				if j != len(self.PI) - 1:
+					fw.write(',')
+				else:
+					fw.write(');\n')
+			fw.write('\t$fwrite(fo,"')
+			for j in range(len(self.PO)):
+				fw.write('%h')
+				if j != len(self.PO) - 1:
+					fw.write(',')
+				else:
+					fw.write('\\n",')
+			for j in range(len(self.PO)):
+				fw.write('out[' + str(j) + ']')
+				if j != len(self.PO) - 1:
+					fw.write(',')
+				else:
+					fw.write(');\n')
 
-			fw.write('\t$fclose(fi' + str(i) + ');\n')
-			fw.write('\t$fclose(fo' + str(i) + ');\n')
+
+		fw.write('\t$fclose(fi);\n')
+		fw.write('\t$fclose(fo);\n')
 
 		fw.write('\t$finish;\n')
 		fw.write('end\n')
@@ -340,47 +385,47 @@ class Circuit:
 			if node.level>max_level:
 				max_level=node.level
 		#phase1 code read input pattern in separate file
-		
-		for i in range(0,test_pattern_count):
-			ipt=open('./'+self.circuit_name+'/input/'+self.circuit_name+'_t'+str(i)+'.txt',mode='r')
-			fw=open('./'+self.circuit_name+'/output/'+self.circuit_name+'_t'+str(i)+'_out.txt',mode='w')
-			for node in self.node_list:#reset
-				#node.value=0
-				node.value=""
-			for line in ipt:
-				line_split=line.split(",")
-				for node in self.PI:
-					if node.name==("N"+line_split[0]):
-						#node.value=int(line_split[1])
-						node.value=line_split[1][:-1]
-						#print(str(line_split[0])+",val="+str(node.value))
-			level=1
-			Done=0
-			while(Done==0):
-				for node in self.node_list:
-					if node.level==level and node.gate_type!="opt":
-						#print("---"+node.name+",val="+node.value)
-						node.operation()
-						#print("-----"+node.name+",val="+node.value)
-				if max_level==level:
-					Done=1
-				level+=1
-			for node in self.node_list:
-				#print("---"+node.name+",val="+node.value)
-				if node.gate_type=="opt":
-					for fin_node in node.fan_in_node:
-						#result=int(fin_node.value)
-						result=fin_node.value
-					node.value=result
-			for node in self.node_list:
-				if node.gate_type=="opt":
-					fw.write(node.name.lstrip("N")+","+str(node.value)+"\n")
-					#print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value))
-			ipt.close()
-			fw.close()
-			
+
+		# for i in range(0,test_pattern_count):
+		# 	ipt=open('./'+self.circuit_name+'/input/'+self.circuit_name+'_t'+str(i)+'.txt',mode='r')
+		# 	fw=open('./'+self.circuit_name+'/output/'+self.circuit_name+'_t'+str(i)+'_out.txt',mode='w')
+		# 	for node in self.node_list:#reset
+		# 		#node.value=0
+		# 		node.value=""
+		# 	for line in ipt:
+		# 		line_split=line.split(",")
+		# 		for node in self.PI:
+		# 			if node.name==("N"+line_split[0]):
+		# 				#node.value=int(line_split[1])
+		# 				node.value=line_split[1][:-1]
+		# 				#print(str(line_split[0])+",val="+str(node.value))
+		# 	level=1
+		# 	Done=0
+		# 	while(Done==0):
+		# 		for node in self.node_list:
+		# 			if node.level==level and node.gate_type!="opt":
+		# 				#print("---"+node.name+",val="+node.value)
+		# 				node.operation()
+		# 				#print("-----"+node.name+",val="+node.value)
+		# 		if max_level==level:
+		# 			Done=1
+		# 		level+=1
+		# 	for node in self.node_list:
+		# 		#print("---"+node.name+",val="+node.value)
+		# 		if node.gate_type=="opt":
+		# 			for fin_node in node.fan_in_node:
+		# 				#result=int(fin_node.value)
+		# 				result=fin_node.value
+		# 			node.value=result
+		# 	for node in self.node_list:
+		# 		if node.gate_type=="opt":
+		# 			fw.write(node.name.lstrip("N")+","+str(node.value)+"\n")
+		# 			#print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value))
+		# 	ipt.close()
+		# 	fw.close()
+
 		#phase2 read multiple input patterns in one single file
-		
+
 		ipt=open('./'+self.circuit_name+'/input/'+self.circuit_name+'_single.txt',mode='r')
 		fw=open('./'+self.circuit_name+'/output/'+self.circuit_name+'_single_out.txt',mode='w')
 		fw2=open('./'+self.circuit_name+'/output/'+self.circuit_name+'_single_out_gold.txt',mode='w')
@@ -409,7 +454,7 @@ class Circuit:
 			read_line_split=read_line.split(",")
 			index=0
 			for node in self.PI:
-				node.value=read_line_split[index]
+				node.value=read_line_split[index].replace('\n','')
 				#print(node.name+",val="+node.value)
 				index=index+1
 			level=1

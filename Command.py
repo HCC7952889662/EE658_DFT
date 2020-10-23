@@ -78,36 +78,35 @@ class Command:
     #def file_check(self,file1,file2):
     def file_check(self,ckt):
         self.test_pattern_count=5
-        for i in range(0,self.test_pattern_count):
-            #print(str(i))
-            origin_output_file = open('./'+ckt.circuit_name+'/output/'+ckt.circuit_name+'_t'+str(i)+'_out.txt', "r+")
-            new_output_file = open('./'+ckt.circuit_name+'/gold/'+ckt.circuit_name+'_t'+str(i)+'_out.txt', "r+")
-            number_of_line = 1
-            origin_line = origin_output_file.readline()
-            #print(origin_line)
-            new_line = new_output_file.readline()
-            #print(new_line)
-            flag = 1
-            if len(origin_line) == 0:
-                print("original file is empty!")
-                flag = 0
-            if len(new_line) == 0:
-                print("new file is empty!")
-                flag = 0
-            if origin_line is not None and new_line is not None:
-                while origin_line:
-                    if origin_line.lower() != new_line.lower():
-                        print('file different! different line is #', number_of_line)
-                        flag = 0
 
-                    else:
-                        flag = 1
-                    origin_line = origin_output_file.readline()
-                    new_line = new_output_file.readline()
-                    number_of_line += 1
-            if flag == 1:
-                print('result are the same')
-            else:
-                print("result are not same!")
-            origin_output_file.close()
-            new_output_file.close()
+        origin_output_file = open('./'+ckt.circuit_name+'/output/'+ckt.circuit_name + '_single_out_gold.txt', "r+")
+        new_output_file = open('./'+ckt.circuit_name+'/gold/golden_'+ckt.circuit_name + '.txt', "r+")
+        number_of_line = 1
+        origin_line = origin_output_file.readline()
+        #print(origin_line)
+        new_line = new_output_file.readline()
+        #print(new_line)
+        flag = 1
+        if len(origin_line) == 0:
+            print("original file is empty!")
+            flag = 0
+        if len(new_line) == 0:
+            print("new file is empty!")
+            flag = 0
+        if origin_line is not None and new_line is not None:
+            while origin_line:
+                if origin_line.lower() != new_line.lower():
+                    print('file different! different line is #', number_of_line)
+                    flag = 0
+
+                else:
+                    flag = 1
+                origin_line = origin_output_file.readline()
+                new_line = new_output_file.readline()
+                number_of_line += 1
+        if flag == 1:
+            print('result are the same')
+        else:
+            print("result are not same!")
+        origin_output_file.close()
+        new_output_file.close()

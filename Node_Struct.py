@@ -39,7 +39,7 @@ class NOT(Node):
         elif self.fan_in_node[0].value == '0':
             self.value = '1'
         else:
-            elf.value = 'X'
+            self.value = 'X'
 
 class NAND(Node):
     def __init__(self, name: str, type: str):
@@ -76,7 +76,7 @@ class NOR(Node):
         '''
         self.value = '1'
         for fin_node in self.fan_in_node:
-            if int(fin_node.value) == '1':
+            if fin_node.value == '1':
                 self.value = '0'
                 break
             elif fin_node.value == 'X':
@@ -96,7 +96,7 @@ class AND(Node):
         '''
         self.value = '1'
         for fin_node in self.fan_in_node:
-            if int(fin_node.value) == '0':
+            if fin_node.value == '0':
                 self.value = '0'
                 break
             elif fin_node.value == 'X':
@@ -116,7 +116,7 @@ class OR(Node):
         '''
         self.value = '0'
         for fin_node in self.fan_in_node:
-            if int(fin_node.value) == '1':
+            if fin_node.value == '1':
                 self.value = '1'
                 break
             elif fin_node.value == 'X':
