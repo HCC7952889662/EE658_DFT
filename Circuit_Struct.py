@@ -190,7 +190,8 @@ class Circuit:
 			fw.write(obj.name + ' ' + str(obj.level)+"\n")
 		fw.close()
 
-	def test_pattern_generator(self, index):
+	def test_pattern_generator(self, index, number_of_testbench):
+		#create separate input file
 		dir = './' + self.circuit_name + '/input/'
 		filename = self.circuit_name + '_t' + str(index) + '.txt'
 		fw = open(dir + filename, mode='w')
@@ -204,6 +205,30 @@ class Circuit:
 				fw.write(pi.name[1:] + ',' + str(random_int) + '\n')
 			
 		fw.close()
+		#create single file with multiple input patterns
+		dir = './' + self.circuit_name + '/input/'
+		filename = self.circuit_name + '_single.txt'
+		fw = open(dir + filename, mode='w')
+		for pi in self.PI:
+			if len(self.PI)-1==self.PI.index(pi):
+				fw.write(pi.name.lstrip('N'))
+			else:
+				fw.write(pi.name.lstrip('N')+',')
+		fw.write('\n')
+		for i in range(number_of_testbench):
+			for pi in self.PI:
+				random_int=random.randint(0,2)
+				if len(self.PI)-1==self.PI.index(pi):
+					if random_int==2:
+						fw.write('X')
+					else:
+						fw.write(str(random_int))
+				else:
+					if random_int==2:
+						fw.write('X,')
+					else:
+						fw.write(str(random_int)+',')
+			fw.write('\n')
 
 	def testbench_generator(self, number_of_testbench):
 		dir = './' + self.circuit_name + '/'
@@ -240,7 +265,7 @@ class Circuit:
 
 		fw.write('initial begin\n')
 		for i in range(number_of_testbench):
-			self.test_pattern_generator(i)
+			self.test_pattern_generator(i,number_of_testbench)
 			fw.write('\ti = 0;\n')
 			fw.write('\t//test pattern' + str(i) + '\n')
 			fw.write('\tfi' + str(i) +' = $fopen("./input/' + str(self.circuit_name)+ '_t' + str(i) + '.txt","r");\n')
