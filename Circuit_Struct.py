@@ -229,6 +229,7 @@ class Circuit:
 					else:
 						fw.write(str(random_int)+',')
 			fw.write('\n')
+		fw.close()
 
 	def testbench_generator(self, number_of_testbench):
 		dir = './' + self.circuit_name + '/'
@@ -334,7 +335,12 @@ class Circuit:
 
 	#def simulation(self,inputfilename,outputfilename):
 	def simulation(self,test_pattern_count):
-		#phase1 code
+		level=1
+		max_level=0
+		for node in self.node_list:
+			if node.level>max_level:
+				max_level=node.level
+		#phase1 code read input pattern in separate file
 		for i in range(0,test_pattern_count):
 			ipt=open('./'+self.circuit_name+'/input/'+self.circuit_name+'_t'+str(i)+'.txt',mode='r')
 			fw=open('./'+self.circuit_name+'/output/'+self.circuit_name+'_t'+str(i)+'_out.txt',mode='w')
@@ -348,11 +354,6 @@ class Circuit:
 						#node.value=int(line_split[1])
 						node.value=line_split[1][:-1]
 						#print(str(line_split[0])+",val="+str(node.value))
-			level=1
-			max_level=0
-			for node in self.node_list:
-				if node.level>max_level:
-					max_level=node.level
 			Done=0
 			while(Done==0):
 				for node in self.node_list:
@@ -376,9 +377,39 @@ class Circuit:
 					print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value))
 			ipt.close()
 			fw.close()
-		#phase2
-
-
+		#phase2 read multiple input patterns in one single file
+		'''
+		ipt=open('./'+self.circuit_name+'/input/'+self.circuit_name+'_single.txt',mode='r')
+		fw=open('./'+self.circuit_name+'/output/'+self.circuit_name+'_single_out.txt',mode='w')
+		read_line=ipt.readline()
+		for i in range(test_pattern_count):
+			for node in self.node_list:#reset
+				node.value=""
+			read_line=ipt.readline()
+			read_line_split=read_line.split(",")
+			for node in self.PI:
+				node.value=read_line_split[1][:-1]
+			Done=0
+			while(Done==0):
+				for node in self.node_list:
+					if node.level==level and node.gate_type!="opt":
+						node.operation()
+				if max_level==level:
+					Done=1
+				level+=1
+			for node in self.node_list:
+				if node.gate_type=="opt":
+					for fin_node in node.fan_in_node:
+						#result=int(fin_node.value)
+						result=fin_node.value
+					node.value=result
+			for node in self.node_list:
+				if node.gate_type=="opt":
+					fw.write(node.name.lstrip("N")+","+str(node.value)+"\n")
+					print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value))
+		ipt.close()
+		fw.close()
+		'''
 class connect():
 	def __init__(self,type, name):
 		self.type = type ##{'wire':1, 'reg':2}
