@@ -365,7 +365,7 @@ class Circuit:
 		#create run.bat
 		dir = './' + str(self.circuit_name) + '/'
 		fw = open(dir + "run.sh", mode='w')
-		fw.write('vsim -do do_'+str(self.circuit_name)+'.do\n')
+		fw.write('vsim -c -do do_'+str(self.circuit_name)+'.do\n')
 		fw.close()
 		#create run.do
 		fw = open(dir + 'do_'+str(self.circuit_name)+'.do', mode='w')
