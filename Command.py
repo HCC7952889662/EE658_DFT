@@ -1,6 +1,7 @@
 # Executed in Python 3.6
 from Circuit_Struct import *
 import os
+import subprocess
 from shutil import copyfile
 class Command:
     def __init__(self):
@@ -53,11 +54,7 @@ class Command:
                 #else:
                     #print("Please enter an input_filename and an output_filename!")
             elif command_name[0] == 'check':
-                #if len(command_name) > 2:
-                    #self.file_check(command_name[1], command_name[2])
-                #else:
-                #    print("Please enter an input_filename and an output_filename!")
-                input("Press Enter to continue after you run the simulation in ModelSim!")
+                subprocess.call(['sh', './run.sh'], cwd = './'+ ckt.circuit_name)
                 self.file_check(ckt)
                 break
             elif command_name[0] == 'tb_gen':
