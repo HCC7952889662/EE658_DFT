@@ -1,6 +1,6 @@
 read ./netlist/c880.v
 lev c880_lev.txt
-tb_gen 300
+tb_gen 5
 logicsim
 check
 quit
