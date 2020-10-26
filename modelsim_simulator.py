@@ -11,10 +11,11 @@ class Modelsim():
         pass
 
     def tb_gen(self, circuit, tp_count):
-        """ What does this method do Ting-Yu???
         """ 
-        # First: generate a input test patter file inside this path 
-        #TODO the name of the test pattern file needs to be changed 
+        First: create a directory ../data/modelsim/circuit_name/ and there will be three folders in this directory including input, output, gold
+        Second: generate a input test patter file inside input folder
+        Third: generate test_bench.v, run.sh, run.do for specific circuit in the directory ../data/modelsim/circuit_name/
+        """ 
         print("Generating a Modelsim project folder in ../data")
         if os.path.exists('../data/modelsim') == False:
             os.mkdir('../data/modelsim')
@@ -30,7 +31,6 @@ class Modelsim():
         circuit.gen_tp_file(tp_count, fname=path+ 'input/'  + self.circuit_name + "_" + str(tp_count) + "_tp_" + "b" + ".txt")
         self.input_file_name=path + 'input/' + self.circuit_name + "_" + str(tp_count) + "_tp_" + "b" + ".txt"
         #check number of input test patterns
-        #print(self.input_file_name)
         fr=open(self.input_file_name, mode='r')
         line_list=fr.readlines()
         number_of_test_patterns=len(line_list)-1
@@ -179,7 +179,6 @@ class Modelsim():
         fw.write('endmodule\n')
         fw.close()
         #create run.sh
-        # path = './' + str(circuit.c_name) + '/'
         fw = open(path + "run.sh", mode='w')
         fw.write('vsim -c -do do_'+str(circuit.c_name)+'.do\n')
         fw.close()
@@ -196,25 +195,24 @@ class Modelsim():
 
 
     def modelsim_simulation(self):
-        """ #TODO: What does this method do???
-        How should someone who is using this know that the process
-        will run in the background? 
-        Output:
-            the golden IP file will be generated 
         """ 
+        First: This function will call a subprocess which will run the ModelSim in the background(No GUI pop up). After it finishes, ModelSim will close automatically.
+        Second: ModelSim will generate the golden IP file in gold folder
+        Third: After ModelSim finishes, the function will end
+        """ 
+        #TODO: need verilog file in the ModelSim simulation folder
         if os.path.exists(self.path + '/gold') == False:
             os.mkdir(self.path + '/gold')
-        #print(self.path)
+
         subprocess.call(['sh','run.sh'], cwd = self.path)
-        #print('modelsim end')
+
 
     def check(self):
-        """ What does this method do Ting-Yu??? 
+        """
         This method checks if the circuit.logicsim matches golden modelsim
-            results
+        First: read output files from our platfrom and ModelSim
+        Second: check if two files are the same
         """ 
-
-        #do the simulation on our platform first
         #output file created by our platform
         origin_output_file = open(self.path+'output/'+self.circuit_name + '_out.txt', "r+")
         #output file form ModelSim
@@ -247,7 +245,13 @@ class Modelsim():
         origin_output_file.close()
         new_output_file.close()
 
-    def logicsim(self,circuit):   
+    def logicsim(self,circuit): 
+        """
+        This method do the logic simulation in our platform
+        First: generate a output folder in ../data/modelsim/circuit_name/ directory
+        Second: read a input file in input folder
+        Third: generate a output file in output folder by using logic_sim() function
+        """
         if os.path.exists(self.path + 'output/') == False:
             os.mkdir(self.path + 'output/')
         fr=open(self.input_file_name, mode='r')
@@ -263,14 +267,10 @@ class Modelsim():
             line_split=line.split(',')
             for x in range(len(line_split)):
                 line_split[x]=int(line_split[x])
-            #print(line_split)
             circuit.logic_sim(line_split)
             fw.write('Test # = '+str(i)+'\n')
             fw.write(line+'\n')
             fw.write(",".join([str(node.value) for node in circuit.PO]) + "\n")
-            #for node in circuit.nodes_lev:
-                #print(str(node.value),end=" ")
-            #print('\n')
             i+=1
         fw.close()
 
