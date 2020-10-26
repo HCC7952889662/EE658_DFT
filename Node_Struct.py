@@ -1,5 +1,7 @@
 #from Circuit_Struct import *
 from Command import *
+from enum import Enum
+
 class Node:
     def __init__(self, name: str, type:str):
         self.name = name  # Node name
@@ -11,6 +13,10 @@ class Node:
         self.value = ''
         self.level = -1    # the initial value (null) of the level
         self.number_of_input_level_defined = 0
+
+    def __str__(self):
+        return (", ".join([str(self.name), self.gate_type, str(self.level),
+                           str(len(self.fan_in_node)), str(len(self.fan_out_node))]))
 
     def __del__(self):
         pass

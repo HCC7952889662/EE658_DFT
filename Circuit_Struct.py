@@ -4,19 +4,29 @@ from Node_Struct import *
 class Circuit:
 	def __init__(self, filename):
 		self.circuit_name = None  # The circuit name
-		self.node_list = []  # The list storing all nodes
-		self.node_name_list = [] # Name Information
+		self.node_list = {}  # The list storing all nodes
 		self.PI = []  # Primary input
 		self.PO = []  # Primary output
 		# Circuit Initialization
 		self.verilog_parser(filename)
+		self.nodes_lev = []  # list of all nodes, ordered by level
+
+	def __str__(self):
+		res = ["Circuit name: " + self.circuit_name]
+		res.append("#Nodes: " + str(len(self.node_list)))
+		res.append("#PI: " + str(len(self.PI)))
+		res.append("#PP: " + str(len(self.PO)))
+
+		for num, node in self.nodes.items():
+			res.append(str(node))
+		return "\n".join(res)
 
 	def __del__(self):
 		pass
 
 	def add_object(self, obj):
-		self.node_list.append(obj)               # the memory location of node, point to the node
-		self.node_name_list.append(obj.name)     # the name of node: N1,N2...
+		self.node_list[obj.name] = obj
+
 
 	def add_PI(self, obj):
 		self.add_object(obj)
@@ -28,7 +38,7 @@ class Circuit:
 
 	def verilog_parser(self, filename):
 		ipt = open(filename)
-		connection_info = []
+		connection_info = {}
 		eff_line = ''
 
 		for line in ipt:
@@ -48,8 +58,7 @@ class Circuit:
 				line_syntax = re.match(r'^[\s]*wire (.*,*);', line, re.IGNORECASE)
 				if line_syntax:
 					for n in line_syntax.group(1).replace(' ', '').replace('\t', '').split(','):
-						new_connect = connect('wire', n)
-						connection_info.append(new_connect)
+						connection_info[n] = {'unode':[], 'dnode':[]}
 
 				# PI
 				line_syntax = re.match(r'^.*input ([a-z]+\s)*(.*,*).*;', line, re.IGNORECASE)
@@ -57,10 +66,8 @@ class Circuit:
 					for n in line_syntax.group(2).replace(' ', '').replace('\t', '').split(','):
 						new_node = Node(n, 'ipt')
 						self.add_PI(new_node)
-						#print(self.PI)
-						new_connect = connect('ipt', n)
-						new_connect.input_node.append(new_node)
-						connection_info.append(new_connect)
+						connection_info[n] = {'unode': [], 'dnode': []}
+						connection_info[n]['unode'].append(new_node)
 
 				# PO
 				line_syntax = re.match(r'^.*output ([a-z]+\s)*(.*,*).*;', line, re.IGNORECASE)
@@ -68,9 +75,8 @@ class Circuit:
 					for n in line_syntax.group(2).replace(' ', '').replace('\t', '').split(','):
 						new_node = Node(n, 'opt')
 						self.add_PO(new_node)
-						new_connect = connect('opt', n)
-						new_connect.output_node.append(new_node)
-						connection_info.append(new_connect)
+						connection_info[n] = {'unode':[], 'dnode':[]}
+						connection_info[n]['dnode'].append(new_node)
 
 				# Module or Gate
 				line_syntax = re.match(r'\s*(.+?) (.+?)\s*\((.*)\s*\);$', line, re.IGNORECASE)
@@ -101,21 +107,18 @@ class Circuit:
 						self.add_object(new_node)
 						#Default Output is 1, so the gate order is OIIIIIII...
 						for index in range(len(gate_order)):
-							for C in connection_info:
-								# Output
-								if index == 0:
-									if C.name == gate_order[index]:
-										C.input_node.append(new_node)
-								# Input
-								else:
-									if C.name == gate_order[index]:
-										C.output_node.append(new_node)
+							# Output
+							if index == 0:
+								connection_info[gate_order[index]]['unode'].append(new_node)
+							# Input
+							else:
+								connection_info[gate_order[index]]['dnode'].append(new_node)
 		ipt.close()
 
 		# Dealing with the connection
-		for c in connection_info:
-			for i in c.input_node:
-				for o in c.output_node:
+		for wire in connection_info.keys():
+			for i in connection_info[wire]['unode']:
+				for o in connection_info[wire]['dnode']:
 					o.fan_in_node.append(i)
 					i.fan_out_node.append(o)
 
@@ -125,7 +128,7 @@ class Circuit:
 		print('Total PO:', len(self.PO))
 		print('Total Nodes:', len(self.node_list))
 		print('#################### Node Information ####################')
-		for obj in self.node_list:
+		for obj in self.node_list.values():
 			print(obj.name + '(' + obj.gate_type + ')')
 			print('fan_in:', end= ' ')
 			for fi in obj.fan_in_node:
@@ -185,7 +188,7 @@ class Circuit:
 		fw.write("#Gates: "+str(len(self.node_list) - len(self.PI) - len(self.PO))+"\n")
 		print('Circuit Name: '+str(self.circuit_name)+"\n")
 		print('#################### Node Information ####################')
-		for obj in self.node_list:
+		for obj in self.node_list.values():
 			print(obj.name + ' : ' + str(obj.level))
 			fw.write(obj.name + ' ' + str(obj.level)+"\n")
 		fw.close()
@@ -285,7 +288,7 @@ class Circuit:
 			fw.write('\t//test pattern' + str(i) + '\n')
 			fw.write('\tstatusI = $fscanf(fi,"')
 			for j in range(len(self.PI)):
-				fw.write('%h')
+				fw.write('%b')
 				if j != len(self.PI) - 1:
 					fw.write(',')
 				else:
@@ -299,7 +302,7 @@ class Circuit:
 			fw.write('\t#1\n')
 			fw.write('\t$display("')
 			for j in range(len(self.PI)):
-				fw.write('%h')
+				fw.write('%b')
 				if j != len(self.PI) - 1:
 					fw.write(',')
 				else:
@@ -313,7 +316,7 @@ class Circuit:
 			fw.write('\t$display("')
 			out_index = 0
 			for po in self.PO:
-				fw.write(po.name + '=%h')
+				fw.write(po.name + '=%b')
 				if out_index != len(self.PO) - 1:
 					fw.write(',')
 					out_index += 1
@@ -329,7 +332,7 @@ class Circuit:
 			fw.write('\t$fwrite(fo, "Test # = ' + str(i) + '\\n");\n')
 			fw.write('\t$fwrite(fo,"')
 			for j in range(len(self.PI)):
-				fw.write('%h')
+				fw.write('%b')
 				if j != len(self.PI) - 1:
 					fw.write(',')
 				else:
@@ -342,7 +345,7 @@ class Circuit:
 					fw.write(');\n')
 			fw.write('\t$fwrite(fo,"')
 			for j in range(len(self.PO)):
-				fw.write('%h')
+				fw.write('%b')
 				if j != len(self.PO) - 1:
 					fw.write(',')
 				else:
@@ -381,48 +384,9 @@ class Circuit:
 	#def simulation(self,inputfilename,outputfilename):
 	def simulation(self,test_pattern_count):
 		max_level=0
-		for node in self.node_list:
+		for node in self.node_list.values():
 			if node.level>max_level:
 				max_level=node.level
-		#phase1 code read input pattern in separate file
-
-		# for i in range(0,test_pattern_count):
-		# 	ipt=open('./'+self.circuit_name+'/input/'+self.circuit_name+'_t'+str(i)+'.txt',mode='r')
-		# 	fw=open('./'+self.circuit_name+'/output/'+self.circuit_name+'_t'+str(i)+'_out.txt',mode='w')
-		# 	for node in self.node_list:#reset
-		# 		#node.value=0
-		# 		node.value=""
-		# 	for line in ipt:
-		# 		line_split=line.split(",")
-		# 		for node in self.PI:
-		# 			if node.name==("N"+line_split[0]):
-		# 				#node.value=int(line_split[1])
-		# 				node.value=line_split[1][:-1]
-		# 				#print(str(line_split[0])+",val="+str(node.value))
-		# 	level=1
-		# 	Done=0
-		# 	while(Done==0):
-		# 		for node in self.node_list:
-		# 			if node.level==level and node.gate_type!="opt":
-		# 				#print("---"+node.name+",val="+node.value)
-		# 				node.operation()
-		# 				#print("-----"+node.name+",val="+node.value)
-		# 		if max_level==level:
-		# 			Done=1
-		# 		level+=1
-		# 	for node in self.node_list:
-		# 		#print("---"+node.name+",val="+node.value)
-		# 		if node.gate_type=="opt":
-		# 			for fin_node in node.fan_in_node:
-		# 				#result=int(fin_node.value)
-		# 				result=fin_node.value
-		# 			node.value=result
-		# 	for node in self.node_list:
-		# 		if node.gate_type=="opt":
-		# 			fw.write(node.name.lstrip("N")+","+str(node.value)+"\n")
-		# 			#print(str(node.name)+" "+str(node.gate_type)+" "+str(node.value))
-		# 	ipt.close()
-		# 	fw.close()
 
 		#phase2 read multiple input patterns in one single file
 
@@ -447,7 +411,7 @@ class Circuit:
 		read_line=ipt.readline()
 		for i in range(test_pattern_count):
 			fw2.write('Test # = '+str(i)+'\n')
-			for node in self.node_list:#reset
+			for node in self.node_list.values():#reset
 				node.value=""
 			read_line=ipt.readline()
 			fw2.write(read_line)
@@ -460,7 +424,7 @@ class Circuit:
 			level=1
 			Done=0
 			while(Done==0):
-				for node in self.node_list:
+				for node in self.node_list.values():
 					if node.level==level and node.gate_type!="opt":
 						#print("---"+node.name+",val="+node.value)
 						node.operation()
@@ -486,11 +450,6 @@ class Circuit:
 		ipt.close()
 		fw.close()
 		fw2.close()
-class connect():
-	def __init__(self,type, name):
-		self.type = type ##{'wire':1, 'reg':2}
-		self.name = name
-		self.input_node  = [] ## this wire is the Input of nodes in this list
-		self.output_node = [] ## this wire is the Output of nodes in this list
+
 
 
