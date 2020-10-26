@@ -365,11 +365,12 @@ class Circuit:
 
 	#def simulation(self,inputfilename,outputfilename):
 	def simulation(self,test_pattern_count):
+		'''
 		max_level=0
 		for node in self.node_list.values():
 			if node.level>max_level:
 				max_level=node.level
-
+		'''
 		#phase2 read multiple input patterns in one single file
 
 		ipt=open('./'+self.circuit_name+'/input/'+self.circuit_name+'_single.txt',mode='r')
@@ -403,6 +404,7 @@ class Circuit:
 				node.value=read_line_split[index].replace('\n','')
 				#print(node.name+",val="+node.value)
 				index=index+1
+			'''
 			level=1
 			Done=0
 			while(Done==0):
@@ -414,6 +416,11 @@ class Circuit:
 				if max_level==level:
 					Done=1
 				level+=1
+			'''
+			
+			for node in self.nodes_lev:
+				if node.gate_type!='ipt' and node.gate_type!='opt':
+					node.operation()
 			for node in self.PO:
 				for fin_node in node.fan_in_node:
 					result=fin_node.value

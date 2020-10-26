@@ -1,6 +1,7 @@
-read ./netlist/c880.v
-lev c880_lev.txt
+read ./netlist/c17.v
+lev c17_lev.txt
 tb_gen 5
 logicsim
+quit
 check
 quit
