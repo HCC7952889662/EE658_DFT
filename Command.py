@@ -44,7 +44,9 @@ class Command:
             elif command_name[0]=="lev":
                 if len(command_name)>1:
                     self.check_create_folder('./' + ckt.circuit_name + '/lev')
-                    ckt.levelization('./' + ckt.circuit_name + '/lev/' + command_name[1])
+                    #ckt.levelization('./' + ckt.circuit_name + '/lev/' + command_name[1])
+                    ckt.levelization()
+                    ckt.lev_print('./' + ckt.circuit_name + '/lev/' + command_name[1])
                 else:
                     print("Please enter an output file name!")
             elif command_name[0]=="logicsim":

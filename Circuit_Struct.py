@@ -138,47 +138,32 @@ class Circuit:
 				print(fo.name, end= ' ')
 			print('\n')
 
-	def levelization(self, outputfilename):
-		# Step 0: Prepare a queue storing the finished nodes
-		queue = []
-		# Step 1: Set all PI to lev0 and update the number_of_input_level_defined
-		for node in self.PI:
-			node.level = 0
-			for dnode in node.fan_out_node:
-				dnode.number_of_input_level_defined += 1
-				# Step 2: Checking whether number_of_input_level_defined is the same as fin
-				if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
-					# if it is the same, then put this ready node into the queue
-					queue.append(dnode)
+	def levelization(self):
+		queue = self.PI
+		while len(queue) != 0:
+			# Step 1: Set all PI to lev0 and update the number_of_input_level_defined
+			for node in queue:
+				if node.gate_type == 'ipt':
+					node.level = 0
+				elif node.gate_type != 'opt':
+					# find the max level of input nodes
+					max_level = node.fan_in_node[0].level
+					for n in node.fan_in_node:
+						max_level = max(max_level, n.level)
+					node.level = max_level + 1
+				else:
+					node.level = node.fan_in_node[0].level
 
-		if len(queue) != 0:
-			self.lev_recursive_part(queue)
+				if len(node.fan_out_node) > 0:
+					for dnode in node.fan_out_node:
+						dnode.number_of_input_level_defined += 1
+						if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
+							# if it is same, then put this ready node into the queue
+							queue.append(dnode)
+				queue.remove(node)
 
-		self.nodes_lev = sorted(list(self.node_list.values()), key=lambda x: x.lev)
-		self.lev_print(outputfilename)
+		self.nodes_lev = sorted(list(self.node_list.values()), key=lambda x: x.level)
 
-	def lev_recursive_part(self, queue):
-		# Step 3: Do the judgement of the level of nodes in queue
-		for node in queue:
-			if node.gate_type != 'opt':
-				# find the max level of input nodes
-				max_level = node.fan_in_node[0].level
-				for n in node.fan_in_node:
-					max_level = max(max_level, n.level)
-				node.level = max_level + 1
-			else:
-				node.level = node.fan_in_node[0].level
-			# Step 4: Repeat the Step2 and Do Queue Maintainence
-			if len(node.fan_out_node) > 0:
-				for dnode in node.fan_out_node:
-					dnode.number_of_input_level_defined += 1
-					if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
-						# if it is same, then put this ready node into the queue
-						queue.append(dnode)
-			queue.remove(node)
-
-		if len(queue) != 0:
-			self.lev_recursive_part(queue)
 
 	def lev_print(self,outputfilename):
 		fw=open(outputfilename,mode='w')
