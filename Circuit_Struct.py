@@ -4,7 +4,7 @@ from Node_Struct import *
 class Circuit:
 	def __init__(self, filename):
 		self.circuit_name = None  # The circuit name
-		self.node_list = {}  # The list storing all nodes
+		self.node_list = {}  # The Dict storing all nodes
 		self.PI = []  # Primary input
 		self.PO = []  # Primary output
 		# Circuit Initialization
@@ -15,9 +15,9 @@ class Circuit:
 		res = ["Circuit name: " + self.circuit_name]
 		res.append("#Nodes: " + str(len(self.node_list)))
 		res.append("#PI: " + str(len(self.PI)))
-		res.append("#PP: " + str(len(self.PO)))
+		res.append("#PO: " + str(len(self.PO)))
 
-		for num, node in self.nodes.items():
+		for node in self.node_list.values():
 			res.append(str(node))
 		return "\n".join(res)
 
@@ -154,6 +154,7 @@ class Circuit:
 		if len(queue) != 0:
 			self.lev_recursive_part(queue)
 
+		self.nodes_lev = sorted(list(self.node_list.values()), key=lambda x: x.lev)
 		self.lev_print(outputfilename)
 
 	def lev_recursive_part(self, queue):
