@@ -62,7 +62,7 @@ class Modelsim():
                 fw.write(');\n')
 
         fw.write('initial begin\n')
-        fw.write('\tfi = $fopen("'+ 'input/'  + self.circuit_name + "_" + str(tp_count) + "_tp_" + "b" + ".txt"+'","r");\n')
+        fw.write('\tfi = $fopen("'+ './input/'  + self.circuit_name + "_" + str(tp_count) + "_tp_" + "b" + ".txt"+'","r");\n')
         fw.write('\tstatusI = $fscanf(fi,"')
         for j in range(len(circuit.PI)):
             fw.write('%s')
