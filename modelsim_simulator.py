@@ -1,6 +1,7 @@
 import os
 import subprocess
 import circuit
+from shutil import copyfile
 class Modelsim():
     def __init__(self):
         self.input_file_name=''
@@ -196,14 +197,14 @@ class Modelsim():
 
     def modelsim_simulation(self):
         """ 
-        First: This function will call a subprocess which will run the ModelSim in the background(No GUI pop up). After it finishes, ModelSim will close automatically.
-        Second: ModelSim will generate the golden IP file in gold folder
-        Third: After ModelSim finishes, the function will end
+        First: copy verilog file from ../data/ckt to ../data/modelsim/circuit_name/
+        Second: This function will call a subprocess which will run the ModelSim in the background(No GUI pop up). After it finishes, ModelSim will close automatically.
+        Third: ModelSim will generate the golden IP file in gold folder
+        Fourth: After ModelSim finishes, the function will end
         """ 
-        #TODO: need verilog file in the ModelSim simulation folder
         if os.path.exists(self.path + '/gold') == False:
             os.mkdir(self.path + '/gold')
-
+        copyfile('../data/ckt/'+self.circuit_name+'.v', self.path+self.circuit_name+'.v')
         subprocess.call(['sh','run.sh'], cwd = self.path)
 
 
