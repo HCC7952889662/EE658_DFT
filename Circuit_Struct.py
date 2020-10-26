@@ -139,45 +139,41 @@ class Circuit:
 			print('\n')
 
 	def levelization(self):
-		queue = self.PI
-		while len(queue) != 0:
-			# Step 1: Set all PI to lev0 and update the number_of_input_level_defined
-			for node in queue:
-				if node.gate_type == 'ipt':
-					node.level = 0
-				elif node.gate_type != 'opt':
-					# find the max level of input nodes
-					max_level = node.fan_in_node[0].level
-					for n in node.fan_in_node:
-						max_level = max(max_level, n.level)
-					node.level = max_level + 1
-				else:
+		for node in self.PI:
+			node.level = 0
+		flag = True
+
+		while flag:
+			flag = False
+			for node in self.node_list.values():
+				if node.gate_type == 'opt':
 					node.level = node.fan_in_node[0].level
+				else:
+					if node.level == -1:
+						lev_unode = [x.level for x in node.fan_in_node]
+						if -1 in lev_unode:
+							continue
+						else:
+							node.level = max(lev_unode) + 1
+							flag = True
 
-				if len(node.fan_out_node) > 0:
-					for dnode in node.fan_out_node:
-						dnode.number_of_input_level_defined += 1
-						if dnode.number_of_input_level_defined == len(dnode.fan_in_node):
-							# if it is same, then put this ready node into the queue
-							queue.append(dnode)
-				queue.remove(node)
-
+		#self.lev_print('test.txt')
 		self.nodes_lev = sorted(list(self.node_list.values()), key=lambda x: x.level)
 
 
 	def lev_print(self,outputfilename):
-		fw=open(outputfilename,mode='w')
-		fw.write(self.circuit_name+"\n")
-		fw.write("#PI: "+str(len(self.PI))+"\n")
-		fw.write("#PO: "+str(len(self.PO))+"\n")
-		fw.write("#Nodes: "+str(len(self.node_list))+"\n")
-		fw.write("#Gates: "+str(len(self.node_list) - len(self.PI) - len(self.PO))+"\n")
-		print('Circuit Name: '+str(self.circuit_name)+"\n")
+		# fw=open(outputfilename,mode='w')
+		# fw.write(self.circuit_name+"\n")
+		# fw.write("#PI: "+str(len(self.PI))+"\n")
+		# fw.write("#PO: "+str(len(self.PO))+"\n")
+		# fw.write("#Nodes: "+str(len(self.node_list))+"\n")
+		# fw.write("#Gates: "+str(len(self.node_list) - len(self.PI) - len(self.PO))+"\n")
+		# print('Circuit Name: '+str(self.circuit_name)+"\n")
 		print('#################### Node Information ####################')
 		for obj in self.node_list.values():
 			print(obj.name + ' : ' + str(obj.level))
-			fw.write(obj.name + ' ' + str(obj.level)+"\n")
-		fw.close()
+			# fw.write(obj.name + ' ' + str(obj.level)+"\n")
+		# fw.close()
 
 	def test_pattern_generator(self, number_of_testbench):
 		#create single file with multiple input patterns
