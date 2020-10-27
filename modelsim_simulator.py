@@ -121,8 +121,8 @@ class Modelsim():
                 fw.write(');\n')
         fw.write('\t#1\n')
 
-        fw.write('\tfo = $fopen("./gold/golden_' + str(self.circuit.c_name) + '.txt","w");\n')
-        fw.write('\tfo = $fopen("./gold/golden_' + str(self.circuit.c_name) + '.txt","a");\n')
+        fw.write('\tfo = $fopen("./gold/golden_' + str(self.circuit.c_name) + "_" + str(tp_count) + '_tp_b.txt","w");\n')
+        fw.write('\tfo = $fopen("./gold/golden_' + str(self.circuit.c_name) + "_" + str(tp_count) + '_tp_b.txt","a");\n')
         fw.write('\t$fwrite(fo,"Inputs: ')
         in_index = 0
         for pi in self.circuit.PI:
