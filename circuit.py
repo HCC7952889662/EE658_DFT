@@ -9,7 +9,7 @@ from node import gtype
 from node import ntype
 from node import *
 # import networkx as nx
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from random import randint
 import time
 import pdb
@@ -113,6 +113,12 @@ class Circuit:
             elif g_type == 'AND':
                 node = AND(n_type, g_type, num)
 
+            elif g_type == 'BUFF':
+                node = BUFF(n_type, g_type, num)
+
+            elif g_type == 'XNOR':
+                node = BUFF(n_type, g_type, num)
+
         node.ntype = n_type
         node.gtype = g_type
         if node.ntype == "PI":
@@ -171,9 +177,9 @@ class Circuit:
         elif gate_type == 'and':
             return gtype(7).name
         ## new node type
-        elif gate_type == 'buf':
-            return gtype(8).name
         elif gate_type == 'xnor':
+            return gtype(8).name
+        elif gate_type == 'buf':
             return gtype(9).name
 
     def insert_node(self, u_node, d_node, i_node):
@@ -184,14 +190,54 @@ class Circuit:
         i_node.unodes.append(u_node)
         i_node.dnodes.append(d_node)
 
+    def node_generation(self, Dict):
+        if Dict['n_type'] == "PI" and Dict['g_type'] == "IPT":
+            node = IPT(Dict['n_type'], Dict['g_type'], Dict['num'])
+
+        elif Dict['n_type'] == "FB" and Dict['g_type'] == "BRCH":
+            node = BRCH(Dict['n_type'], Dict['g_type'], Dict['num'])
+
+        elif Dict['n_type'] == "GATE" and Dict['g_type'] == "BRCH":
+            raise NotImplementedError()
+
+        elif Dict['n_type'] == "GATE" or Dict['n_type'] == "PO":
+            if Dict['g_type'] == 'XOR':
+                node = XOR(Dict['n_type'], Dict['g_type'], Dict['num'])
+
+            elif Dict['g_type'] == 'OR':
+                node = OR(Dict['n_type'], Dict['g_type'], Dict['num'])
+
+            elif Dict['g_type'] == 'NOR':
+                node = NOR(Dict['n_type'], Dict['g_type'], Dict['num'])
+
+            elif Dict['g_type'] == 'NOT':
+                node = NOR(Dict['n_type'], Dict['g_type'], Dict['num'])
+
+            elif Dict['g_type'] == 'NAND':
+                node = NAND(Dict['n_type'], Dict['g_type'], Dict['num'])
+
+
+            elif Dict['g_type'] == 'AND':
+                node = AND(Dict['n_type'], Dict['g_type'], Dict['num'])
+
+            elif Dict['g_type'] == 'BUFF':
+                node = BUFF(Dict['n_type'], Dict['g_type'], Dict['num'])
+
+            # elif Dict['g_type'] == 'XNOR':
+            #     node = XNOR(Dict['n_type'], Dict['g_type'], Dict['num'])
+        else:
+            raise NotImplementedError()
+        return node
     def read_verilog(self):
         """
         Read circuit from .v file, each node as an object
         """
-        path = "../data/ckt/{}.v".format(self.c_name)
+        path = "../data/verilog/{}.v".format(self.c_name)
         infile = open(path, 'r')
         eff_line = ''
-        for line in infile:
+        lines = infile.readlines()
+        new_lines=[]
+        for line in lines:
             # eliminate comment first
             line_syntax = re.match(r'^.*//.*', line, re.IGNORECASE)
             if line_syntax:
@@ -203,19 +249,23 @@ class Circuit:
                 continue
             line = eff_line + line.rstrip()
             eff_line = ''
+            new_lines.append(line)
+        infile.close()
+        # 1st time Parsing: Creating all nodes
+        Dict = {}
+        for line in new_lines:
             if line != "":
                 # wire
                 line_syntax = re.match(r'^[\s]*wire (.*,*);', line, re.IGNORECASE)
                 if line_syntax:
                     for n in line_syntax.group(1).replace(' ', '').replace('\t', '').split(','):
-                        new_node = Node(num= n[1:], n_type= ntype(0).name, g_type= None)
-                        self.nodes[new_node.num] = new_node
+                        Dict[n[1:]] = {'num': n[1:], 'n_type':ntype(0).name, 'g_type':None}
 
                 # PI: n_type = 0 g_type = 0
                 line_syntax = re.match(r'^.*input ([a-z]+\s)*(.*,*).*;', line, re.IGNORECASE)
                 if line_syntax:
                     for n in line_syntax.group(2).replace(' ', '').replace('\t', '').split(','):
-                        new_node = Node(num= n[1:], n_type= ntype(1).name, g_type= self.gtype_translator('ipt'))
+                        new_node = self.node_generation({'num': n[1:], 'n_type': ntype(1).name, 'g_type': self.gtype_translator('ipt')})
                         self.nodes[new_node.num] = new_node
                         self.PI.append(new_node)
 
@@ -223,31 +273,39 @@ class Circuit:
                 line_syntax = re.match(r'^.*output ([a-z]+\s)*(.*,*).*;', line, re.IGNORECASE)
                 if line_syntax:
                     for n in line_syntax.group(2).replace(' ', '').replace('\t', '').split(','):
-                        new_node = Node(num = n[1:], n_type= ntype(3).name, g_type= None)
-                        self.nodes[new_node.num] = new_node
-                        self.PO.append(new_node)
+                        Dict[n[1:]] = {'num': n[1:], 'n_type': ntype(3).name, 'g_type': None}
 
                 # Gate reading and Making Connection of nodes
                 line_syntax = re.match(r'\s*(.+?) (.+?)\s*\((.*)\s*\);$', line, re.IGNORECASE)
                 if line_syntax:
                     if line_syntax.group(1) != 'module':
                         node_order = line_syntax.group(3).replace(' ', '').split(',')
-                        # Define Gate Type
-                        self.nodes[node_order[0][1:]].gtype = self.gtype_translator(line_syntax.group(1))
+                        # Nodes Generation
+                        Dict[node_order[0][1:]]['g_type'] = self.gtype_translator(line_syntax.group(1))
+                        new_node = self.node_generation(Dict[node_order[0][1:]])
+                        self.nodes[new_node.num] = new_node
+                        if new_node.ntype == 'PO':
+                            self.PO.append(new_node)
+        # 2nd time Parsing: Making All Connections
+        for line in new_lines:
+            if line != "":
+                line_syntax = re.match(r'\s*(.+?) (.+?)\s*\((.*)\s*\);$', line, re.IGNORECASE)
+                if line_syntax:
+                    if line_syntax.group(1) != 'module':
+                        node_order = line_syntax.group(3).replace(' ', '').split(',')
                         for i in range(1, len(node_order)):
                             # Making connections
                             self.nodes[node_order[0][1:]].unodes.append(self.nodes[node_order[i][1:]])
                             self.nodes[node_order[i][1:]].dnodes.append(self.nodes[node_order[0][1:]])
-        infile.close()
+
         ###### Branch Generation ######
         B_Dict = {}
         for node in self.nodes.values():
             if len(node.dnodes) > 1:
                 for index in range(len(node.dnodes)):
                     ## New BNCH
-                    FB_node = Node(num=node.num + '-' + str(index+1), n_type=ntype(2).name, g_type=gtype(1).name)
+                    FB_node = self.node_generation({'num': node.num + '-' + str(index+1), 'n_type':ntype(2).name, 'g_type':gtype(1).name})
                     B_Dict[FB_node.num] = FB_node
-                    ## Insertion
                     self.insert_node(node, node.dnodes[0], FB_node)
         self.nodes.update(B_Dict)
 
@@ -346,6 +404,32 @@ class Circuit:
             res["out" + str(node.num)] = node.value
         return res
 
+    def logic_sim_file(self, in_fname, out_fname):
+        """
+        This method does the logic simulation in our platform
+        First: generate a output folder in ../data/modelsim/circuit_name/ directory
+        Second: read a input file in input folder
+        Third: generate a output file in output folder by using logic_sim() function
+        """
+        fr = open(in_fname, mode='r')
+        fw = open(out_fname, mode='w')
+        fw.write('Inputs: ')
+        fw.write(",".join(['N'+str(node.num) for node in self.PI]) + "\n")
+        fw.write('Outputs: ')
+        fw.write(",".join(['N'+str(node.num) for node in self.PO]) + "\n")
+        line=fr.readline()
+        i=1
+        for line in fr.readlines():
+            line=line.rstrip('\n')
+            line_split=line.split(',')
+            for x in range(len(line_split)):
+                line_split[x]=int(line_split[x])
+            self.logic_sim(line_split)
+            fw.write('Test # = '+str(i)+'\n')
+            fw.write(line+'\n')
+            fw.write(",".join([str(node.value) for node in self.PO]) + "\n")
+            i+=1
+        fw.close()
 
     def logic_sim(self, input_pattern):
         """
@@ -356,7 +440,6 @@ class Circuit:
             ... same order as in self.PI
         """
         node_dict = dict(zip([x.num for x in self.PI], input_pattern))
-
         for node in self.nodes_lev:
             if node.gtype == "IPT":
                 node.imply(node_dict[node.num])
