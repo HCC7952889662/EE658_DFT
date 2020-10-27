@@ -157,24 +157,32 @@ class Circuit:
 
     def gtype_translator(self, gate_type):
         if gate_type == 'ipt':
-            return '0'
+            return gtype(0).name
         elif gate_type == 'xor':
-            return '2'
+            return gtype(2).name
         elif gate_type == 'or':
-            return '3'
+            return gtype(3).name
         elif gate_type == 'nor':
-            return '4'
+            return gtype(4).name
         elif gate_type == 'not':
-            return '5'
+            return gtype(5).name
         elif gate_type == 'nand':
-            return '6'
+            return gtype(6).name
         elif gate_type == 'and':
-            return '7'
+            return gtype(7).name
         ## new node type
         elif gate_type == 'buf':
-            return '8'
+            return gtype(8).name
         elif gate_type == 'xnor':
-            return '9'
+            return gtype(9).name
+
+    def insert_node(self, u_node, d_node, i_node):
+        u_node.dnodes.remove(d_node)
+        u_node.dnodes.append(i_node)
+        d_node.unodes.remove(u_node)
+        d_node.unodes.append(i_node)
+        i_node.unodes.append(u_node)
+        i_node.dnodes.append(d_node)
 
     def read_verilog(self):
         """
@@ -182,10 +190,7 @@ class Circuit:
         """
         path = "../data/ckt/{}.v".format(self.c_name)
         infile = open(path, 'r')
-        PO_list = {}
-        connection_info = {}
         eff_line = ''
-
         for line in infile:
             # eliminate comment first
             line_syntax = re.match(r'^.*//.*', line, re.IGNORECASE)
@@ -203,59 +208,48 @@ class Circuit:
                 line_syntax = re.match(r'^[\s]*wire (.*,*);', line, re.IGNORECASE)
                 if line_syntax:
                     for n in line_syntax.group(1).replace(' ', '').replace('\t', '').split(','):
-                        connection_info[n] = {'unode' : [],'dnode': []}
-
+                        new_node = Node(num= n[1:], n_type= ntype(0).name, g_type= None)
+                        self.nodes[new_node.num] = new_node
 
                 # PI: n_type = 0 g_type = 0
                 line_syntax = re.match(r'^.*input ([a-z]+\s)*(.*,*).*;', line, re.IGNORECASE)
                 if line_syntax:
                     for n in line_syntax.group(2).replace(' ', '').replace('\t', '').split(','):
-                        info = '1 ' +  n[1:] + ' '  + self.gtype_translator('ipt') + '   '
-                        new_node = self.add_node(info)
+                        new_node = Node(num= n[1:], n_type= ntype(1).name, g_type= self.gtype_translator('ipt'))
                         self.nodes[new_node.num] = new_node
-                        connection_info[n] = {'unode' : [],'dnode': []}
-                        connection_info[n]['unode'].append(new_node)
-
+                        self.PI.append(new_node)
 
                 # PO n_type = 3 but g_type has an issue
                 line_syntax = re.match(r'^.*output ([a-z]+\s)*(.*,*).*;', line, re.IGNORECASE)
                 if line_syntax:
-                    PO_list = line_syntax.group(2).replace(' ', '').replace('\t', '').split(',')
                     for n in line_syntax.group(2).replace(' ', '').replace('\t', '').split(','):
-                        connection_info[n] = {'unode': [], 'dnode': []}
-                        connection_info[n]['unode'].append(new_node)
+                        new_node = Node(num = n[1:], n_type= ntype(3).name, g_type= None)
+                        self.nodes[new_node.num] = new_node
+                        self.PO.append(new_node)
 
-                # Gate reading
+                # Gate reading and Making Connection of nodes
                 line_syntax = re.match(r'\s*(.+?) (.+?)\s*\((.*)\s*\);$', line, re.IGNORECASE)
                 if line_syntax:
                     if line_syntax.group(1) != 'module':
-                        gate_order = line_syntax.group(3).replace(' ', '').split(',')
-                        # Check whether it belongs to PO
-                        if gate_order[0] in PO_list:
-                            info = '3 ' +  gate_order[0][1:] + ' ' + self.gtype_translator(line_syntax.group(1)) + '   '
-                        # Check whether it belongs to GATE
-                        else:
-                            info = '0 ' +  gate_order[0][1:] + ' ' + self.gtype_translator(line_syntax.group(1)) + '   '
-
-                        new_node = self.add_node(info)
-                        self.nodes[new_node.num] = new_node
-                        # Default Output is index = 0, the rest are Inputs
-                        for index in range(len(gate_order)):
-                            # Output
-                            if index == 0:
-                                connection_info[gate_order[index]]['unode'].append(new_node)
-                            # Input
-                            else:
-                                connection_info[gate_order[index]]['dnode'].append(new_node)
-
+                        node_order = line_syntax.group(3).replace(' ', '').split(',')
+                        # Define Gate Type
+                        self.nodes[node_order[0][1:]].gtype = self.gtype_translator(line_syntax.group(1))
+                        for i in range(1, len(node_order)):
+                            # Making connections
+                            self.nodes[node_order[0][1:]].unodes.append(self.nodes[node_order[i][1:]])
+                            self.nodes[node_order[i][1:]].dnodes.append(self.nodes[node_order[0][1:]])
         infile.close()
-
-        # Making the whole connection
-        for wire in connection_info.keys():
-            for i in connection_info[wire]['unode']:
-                for o in connection_info[wire]['dnode']:
-                    o.unodes.append(i)
-                    i.dnodes.append(o)
+        ###### Branch Generation ######
+        B_Dict = {}
+        for node in self.nodes.values():
+            if len(node.dnodes) > 1:
+                for index in range(len(node.dnodes)):
+                    ## New BNCH
+                    FB_node = Node(num=node.num + '-' + str(index+1), n_type=ntype(2).name, g_type=gtype(1).name)
+                    B_Dict[FB_node.num] = FB_node
+                    ## Insertion
+                    self.insert_node(node, node.dnodes[0], FB_node)
+        self.nodes.update(B_Dict)
 
     def read_ckt(self):
         """
