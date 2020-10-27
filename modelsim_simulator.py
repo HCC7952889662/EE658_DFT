@@ -1,172 +1,215 @@
+
 import os
 import subprocess
 import circuit
+import config
 from shutil import copyfile
+
+'''
+This class can be reused for different circuits, and it will create different modelsim project folders for different circuits 
+'''
 class Modelsim():
     def __init__(self):
-        self.input_file_name=''
-        self.circuit_name=''
-        self.path=''
+        '''
+        Create the ModelSim folder
+        '''
+
+        if os.path.exists(config.MODELSIM_DIR): 
+            #print("Modelsim project folder exists: {}".format(config.MODELSIM_DIR))
+            pass
+        else:
+            #print("Creating a Modelsim project: {}".format(config.MODELSIM_DIR))
+            os.mkdir(config.MODELSIM_DIR)
 
     def __del__(self):
         pass
+    
+    def project(self, circuit):
+        '''
+        Create the project folder for the specific circuit
+        '''
+        self.circuit = circuit
+        self.path = os.path.join(config.MODELSIM_DIR, self.circuit.c_name) #project path for a specific netlist
+        self.path_in = os.path.join(self.path, config.MODELSIM_INPUT_DIR)
+        self.path_gold = os.path.join(self.path, config.MODELSIM_GOLD_DIR)
+        self.path_out = os.path.join(self.path, config.MODELSIM_OUTPUT_DIR)
+        if os.path.exists(self.path): 
+            #print("Modelsim project folder for circuit {} alread exists in {}".format(self.circuit.c_name, self.path))
+            pass
+        else: 
+            #print("Creating a Modelsim project folder for circuit {} in {}".format(self.circuit.c_name, self.path))
+            os.mkdir(self.path)
+        
+        if not os.path.exists(self.path_in):
+            os.mkdir(self.path_in)
+        
+        if not os.path.exists(self.path_gold):
+            os.mkdir(self.path_gold)
+        
+        if not os.path.exists(self.path_out):
+            os.mkdir(self.path_out)
 
-    def tb_gen(self, circuit, tp_count):
+        return 
+    
+    def gen_rand_tp(self, tp_count, tp_fname=None):
+        '''
+        Generates a random test patter file for this circuit
+        '''
+        #print("Generating a test pattern file in {}".format(self.path_in))
+        if tp_fname is None:
+            tp_fname = os.path.join(self.path_in, 
+                    self.circuit.c_name + "_" + str(tp_count) + "_tp_b.txt")
+        else:
+            tp_fname = os.path.join(self.path_in, tp_fname)
+        
+        self.circuit.gen_tp_file(tp_count, fname=tp_fname)
+        return tp_fname 
+
+    def gen_tb(self, tp_fname):
         """ 
-        First: create a directory ../data/modelsim/circuit_name/ and there will be three folders in this directory including input, output, gold
-        Second: generate a input test patter file inside input folder
-        Third: generate test_bench.v, run.sh, run.do for specific circuit in the directory ../data/modelsim/circuit_name/
+        Generate test_bench.v, run.sh, run.do for the specific circuit 
+           in the circuit project folder
         """ 
-        print("Generating a Modelsim project folder in ../data")
-        if os.path.exists('../data/modelsim') == False:
-            os.mkdir('../data/modelsim')
-        self.circuit_name=circuit.c_name
-        path = '../data/modelsim/' + circuit.c_name + '/'
-        self.path = path
-        print("Generating a Modelsim project folder for circuit " + self.circuit_name +' in ' + self.path)
-        if os.path.exists(path) == False:
-            os.mkdir(path)
-        if os.path.exists(path+'input') == False:
-            os.mkdir(path+'input')
-        print("Generating a test pattern file in " + self.path +'input/')
-        circuit.gen_tp_file(tp_count, fname=path+ 'input/'  + self.circuit_name + "_" + str(tp_count) + "_tp_" + "b" + ".txt")
-        self.input_file_name=path + 'input/' + self.circuit_name + "_" + str(tp_count) + "_tp_" + "b" + ".txt"
+
         #check number of input test patterns
-        fr=open(self.input_file_name, mode='r')
-        line_list=fr.readlines()
-        number_of_test_patterns=len(line_list)-1
+        fr = open(tp_fname, mode='r')
+        line_list = fr.readlines()
+        tp_count = len(line_list)-1
         fr.close()
-
-        fw = open(path + str(circuit.c_name) + "_tb.v", mode='w')
+        self.tp_count=tp_count
+        #generate different tb for different test input
+        tb_fname = os.path.join(self.path, self.circuit.c_name + "_" + str(tp_count) + "_b_tb.v")
+        
+        fw = open(tb_fname, mode='w')
         fw.write("`timescale 1ns/1ns" + "\n")
-        fw.write('module ' + str(circuit.c_name) + "_tb;" + '\n')
+        fw.write('module ' + str(self.circuit.c_name) + "_" + str(tp_count) + "_b_tb;" + '\n')
         fw.write("integer fi, fo;\n")
         fw.write('integer statusI;\n')
         fw.write('integer in_name;\n')
-        fw.write('reg in [0:' + str(len(circuit.PI)-1) + '];\n')
-        fw.write('wire out [0:' + str(len(circuit.PO) - 1) + '];\n')
+        fw.write('reg in [0:' + str(len(self.circuit.PI)-1) + '];\n')
+        fw.write('wire out [0:' + str(len(self.circuit.PO) - 1) + '];\n')
         fw.write('reg clk;\n')
         fw.write('\n')
-        fw.write(str(circuit.c_name) + ' u_' + str(circuit.c_name) + ' (')
+        fw.write(str(self.circuit.c_name) + ' u_' + str(self.circuit.c_name) + ' (')
         in_index = 0
-        for pi in circuit.PI:
+        for pi in self.circuit.PI:
             fw.write('.N' + str(pi.num) + '(in[' + str(in_index) + ']),')
             in_index += 1
         out_index = 0
-        for po in circuit.PO:
+        for po in self.circuit.PO:
             fw.write('.N' + str(po.num) + '(out[' + str(out_index) + '])')
-            if out_index != len(circuit.PO)-1:
+            if out_index != len(self.circuit.PO)-1:
                 fw.write(',')
                 out_index += 1
             else:
                 fw.write(');\n')
 
         fw.write('initial begin\n')
-        fw.write('\tfi = $fopen("'+ './input/'  + self.circuit_name + "_" + str(tp_count) + "_tp_" + "b" + ".txt"+'","r");\n')
+        fw.write('\tfi = $fopen("'+ './input/'  + self.circuit.c_name + "_" + str(tp_count) + "_tp_" + "b" + ".txt"+'","r");\n')
         fw.write('\tstatusI = $fscanf(fi,"')
-        for j in range(len(circuit.PI)):
+        for j in range(len(self.circuit.PI)):
             fw.write('%s')
-            if j != len(circuit.PI) - 1:
+            if j != len(self.circuit.PI) - 1:
                 fw.write(',')
             else:
                 fw.write('\\n",')
-        for j in range(len(circuit.PI)):
+        for j in range(len(self.circuit.PI)):
             fw.write('in[' + str(j) + ']')
-            if j != len(circuit.PI) - 1:
+            if j != len(self.circuit.PI) - 1:
                 fw.write(',')
             else:
                 fw.write(');\n')
         fw.write('\t#1\n')
 
-        fw.write('\tfo = $fopen("./gold/golden_' + str(circuit.c_name) + '.txt","w");\n')
-        fw.write('\tfo = $fopen("./gold/golden_' + str(circuit.c_name) + '.txt","a");\n')
+        fw.write('\tfo = $fopen("./gold/golden_' + str(self.circuit.c_name) + '.txt","w");\n')
+        fw.write('\tfo = $fopen("./gold/golden_' + str(self.circuit.c_name) + '.txt","a");\n')
         fw.write('\t$fwrite(fo,"Inputs: ')
         in_index = 0
-        for pi in circuit.PI:
+        for pi in self.circuit.PI:
             fw.write("N" + str(pi.num))
-            if in_index != len(circuit.PI) - 1:
+            if in_index != len(self.circuit.PI) - 1:
                 fw.write(',')
                 in_index += 1
             else:
                 fw.write('\\n");\n')
         fw.write('\t$fwrite(fo,"Outputs: ')
         out_index = 0
-        for pi in circuit.PO:
+        for pi in self.circuit.PO:
             fw.write("N" + str(pi.num))
-            if out_index != len(circuit.PO) - 1:
+            if out_index != len(self.circuit.PO) - 1:
                 fw.write(',')
                 out_index += 1
             else:
                 fw.write('\\n");\n')
-        for i in range(number_of_test_patterns):
+        for i in range(tp_count):
             fw.write('\t//test pattern' + str(i) + '\n')
             fw.write('\tstatusI = $fscanf(fi,"')
-            for j in range(len(circuit.PI)):
+            for j in range(len(self.circuit.PI)):
                 fw.write('%h')
-                if j != len(circuit.PI) - 1:
+                if j != len(self.circuit.PI) - 1:
                     fw.write(',')
                 else:
                     fw.write('\\n",')
-            for j in range(len(circuit.PI)):
+            for j in range(len(self.circuit.PI)):
                 fw.write('in[' + str(j) + ']')
-                if j != len(circuit.PI) - 1:
+                if j != len(self.circuit.PI) - 1:
                     fw.write(',')
                 else:
                     fw.write(');\n')
             fw.write('\t#1\n')
             fw.write('\t$display("')
-            for j in range(len(circuit.PI)):
+            for j in range(len(self.circuit.PI)):
                 fw.write('%h')
-                if j != len(circuit.PI) - 1:
+                if j != len(self.circuit.PI) - 1:
                     fw.write(',')
                 else:
                     fw.write('\\n",')
-            for j in range(len(circuit.PI)):
+            for j in range(len(self.circuit.PI)):
                 fw.write('in[' + str(j) + ']')
-                if j != len(circuit.PI) - 1:
+                if j != len(self.circuit.PI) - 1:
                     fw.write(',')
                 else:
                     fw.write(');\n')
             fw.write('\t$display("')
             out_index = 0
-            for po in circuit.PO:
+            for po in self.circuit.PO:
                 fw.write("N" + str(po.num) + '=%h')
-                if out_index != len(circuit.PO) - 1:
+                if out_index != len(self.circuit.PO) - 1:
                     fw.write(',')
                     out_index += 1
                 else:
                     fw.write('\\n",')
-                    for j in range(len(circuit.PO)):
+                    for j in range(len(self.circuit.PO)):
                         fw.write('out[' + str(j) + ']')
-                        if j != len(circuit.PO) - 1:
+                        if j != len(self.circuit.PO) - 1:
                             fw.write(',')
                             out_index += 1
                         else:
                             fw.write(');\n')
             fw.write('\t$fwrite(fo, "Test # = ' + str(i+1) + '\\n");\n')
             fw.write('\t$fwrite(fo,"')
-            for j in range(len(circuit.PI)):
+            for j in range(len(self.circuit.PI)):
                 fw.write('%h')
-                if j != len(circuit.PI) - 1:
+                if j != len(self.circuit.PI) - 1:
                     fw.write(',')
                 else:
                     fw.write('\\n",')
-            for j in range(len(circuit.PI)):
+            for j in range(len(self.circuit.PI)):
                 fw.write('in[' + str(j) + ']')
-                if j != len(circuit.PI) - 1:
+                if j != len(self.circuit.PI) - 1:
                     fw.write(',')
                 else:
                     fw.write(');\n')
             fw.write('\t$fwrite(fo,"')
-            for j in range(len(circuit.PO)):
+            for j in range(len(self.circuit.PO)):
                 fw.write('%h')
-                if j != len(circuit.PO) - 1:
+                if j != len(self.circuit.PO) - 1:
                     fw.write(',')
                 else:
                     fw.write('\\n",')
-            for j in range(len(circuit.PO)):
+            for j in range(len(self.circuit.PO)):
                 fw.write('out[' + str(j) + ']')
-                if j != len(circuit.PO) - 1:
+                if j != len(self.circuit.PO) - 1:
                     fw.write(',')
                 else:
                     fw.write(');\n')
@@ -179,33 +222,38 @@ class Modelsim():
         fw.write('end\n')
         fw.write('endmodule\n')
         fw.close()
+
         #create run.sh
-        fw = open(path + "run.sh", mode='w')
-        fw.write('vsim -c -do do_'+str(circuit.c_name)+'.do\n')
+        fw = open(os.path.join(self.path, self.circuit.c_name + "_" + str(tp_count) + "_run.sh"), mode = 'w')
+        fw.write('vsim -c -do ' + self.circuit.c_name + "_" + str(tp_count) +'_b.do\n')
         fw.close()
+        
         #create run.do
-        fw = open(path + 'do_'+str(circuit.c_name)+'.do', mode='w')
+        fw = open(os.path.join(self.path, self.circuit.c_name + "_" + str(tp_count) +'_b.do'), mode='w')
         fw.write('vlib work\n')
         fw.write('vmap work work\n')
-        fw.write('vlog -work work '+str(circuit.c_name)+'.v\n')
-        fw.write('vlog -work work '+str(circuit.c_name)+'_tb.v\n')
+        fw.write('vlog -work work '+str(self.circuit.c_name)+'.v\n')
+        fw.write('vlog -work work '+str(self.circuit.c_name)+ "_" + str(tp_count) + '_b_tb.v\n')
         fw.write('onerror {resume}\n')
-        fw.write('vsim -novopt work.'+str(circuit.c_name)+'_tb\n')
+        fw.write('vsim -novopt work.'+str(self.circuit.c_name)+"_" + str(tp_count) + '_b_tb\n')
         fw.write('run -all\n')
         fw.close()
 
-
-    def modelsim_simulation(self):
+    def simulation(self, fname_sh=None):
         """ 
-        First: copy verilog file from ../data/ckt to ../data/modelsim/circuit_name/
+        First: copy verilog file from ./data/verilog to the project folder
         Second: This function will call a subprocess which will run the ModelSim in the background(No GUI pop up). After it finishes, ModelSim will close automatically.
-        Third: ModelSim will generate the golden IP file in gold folder
+        Third: ModelSim will generate the golden I/O file in gold folder
         Fourth: After ModelSim finishes, the function will end
         """ 
-        if os.path.exists(self.path + '/gold') == False:
-            os.mkdir(self.path + '/gold')
-        copyfile('../data/ckt/'+self.circuit_name+'.v', self.path+self.circuit_name+'.v')
-        subprocess.call(['sh','run.sh'], cwd = self.path)
+        filepath=os.path.join(self.path, self.circuit.c_name+'.v')
+        if os.path.isfile(filepath):
+            pass
+        else:
+            copyfile(os.path.join(config.VERILOG_DIR, self.circuit.c_name + ".v"), filepath)
+        if fname_sh == None:
+            fname_sh = self.circuit.c_name + "_" + str(self.tp_count) + "_run.sh"
+        subprocess.call(['sh',fname_sh], cwd = self.path)
 
 
     def check(self):
@@ -215,9 +263,9 @@ class Modelsim():
         Second: check if two files are the same
         """ 
         #output file created by our platform
-        origin_output_file = open(self.path+'output/'+self.circuit_name + '_out.txt', "r+")
+        origin_output_file = open(self.path+'output/'+self.circuit.c_name + '_out.txt', "r+")
         #output file form ModelSim
-        new_output_file = open(self.path+'gold/golden_'+self.circuit_name + '.txt', "r+")
+        new_output_file = open(self.path+'gold/golden_'+self.circuit.c_name + '.txt', "r+")
         number_of_line = 1
         origin_line = origin_output_file.readline()
         new_line = new_output_file.readline()
@@ -246,33 +294,3 @@ class Modelsim():
         origin_output_file.close()
         new_output_file.close()
 
-    def logicsim(self,circuit): 
-        """
-        This method do the logic simulation in our platform
-        First: generate a output folder in ../data/modelsim/circuit_name/ directory
-        Second: read a input file in input folder
-        Third: generate a output file in output folder by using logic_sim() function
-        """
-        if os.path.exists(self.path + 'output/') == False:
-            os.mkdir(self.path + 'output/')
-        fr=open(self.input_file_name, mode='r')
-        fw=open(self.path+'output/'+self.circuit_name + '_out.txt',mode='w')
-        fw.write('Inputs: ')
-        fw.write(",".join(['N'+str(node.num) for node in circuit.PI]) + "\n")
-        fw.write('Outputs: ')
-        fw.write(",".join(['N'+str(node.num) for node in circuit.PO]) + "\n")
-        line=fr.readline()
-        i=1
-        for line in fr.readlines():
-            line=line.rstrip('\n')
-            line_split=line.split(',')
-            for x in range(len(line_split)):
-                line_split[x]=int(line_split[x])
-            circuit.logic_sim(line_split)
-            fw.write('Test # = '+str(i)+'\n')
-            fw.write(line+'\n')
-            fw.write(",".join([str(node.value) for node in circuit.PO]) + "\n")
-            i+=1
-        fw.close()
-
-        
