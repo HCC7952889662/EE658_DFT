@@ -1,5 +1,9 @@
 import circuit
 import re
+import config
+import os
+from circuit import *
+from modelsim_simulator import *
 
 class Checker():
     def __init__(self):
@@ -16,6 +20,37 @@ class Checker():
         - Check if the PI/PO of the files are the same -- raise error if not match
         - etc. 
         """
+    def run(self, ckt_name, tp_count):
+        circuit = Circuit(ckt_name)
+        circuit.read_verilog()
+        circuit.lev()
+        sim = Modelsim()
+        sim.project(circuit)
+        tp_fname = sim.gen_rand_tp(tp_count= tp_count)
+        sim.gen_tb(tp_fname)
+        sim.simulation()
+        tp_path = os.path.join(sim.path_gold, 'golden_' + circuit.c_name + '_'+ str(tp_count)+ '_tp_b.txt')
+        return self.check_IO_golden(circuit, tp)
+
+
+    def run_all(self, tp_count):
+        file_names = []
+        # r=root, d=directories, f = files
+        for r, d, f in os.walk(config.VERILOG_DIR):
+            for file in f:
+                if '.v' in file:
+                    file_names.append(os.path.splitext(file)[0])
+
+        for c_name in file_names:
+            if self.run(c_name, tp_count) == False:
+                print('Test: {} fails !'.format(c_name))
+                return False
+        print('#########################################################')
+        print('############## All Circuits Tests Pass ! ################')
+        print('#########################################################')
+        return True
+
+
     def check_PI_PO(self, fname_ckt, fname_verilog):
         '''
         from http://sportlab.usc.edu/~msabrishami/benchmarks.html
@@ -70,7 +105,7 @@ class Checker():
 
     def check_IO_golden(self, circuit, golden_io_filename):
         #we have golden_test() in circuit
-        # compares the results of logic-sim of this circuit, 
+        # compares the results of logic-sim of this circuit,
         #  ... provided a golden input/output file
         infile = open(golden_io_filename, "r")
         lines = infile.readlines()
@@ -96,7 +131,7 @@ class Checker():
         return True
 
 try:
-    check = Checker()
-    check.check_PI_PO('c6288.ckt', 'c6288.v')
+    Checker().run_all(50)
+
 except TypeError:
     print('TypeError!')
