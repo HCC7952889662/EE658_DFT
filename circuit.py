@@ -9,7 +9,7 @@ from node import gtype
 from node import ntype
 from node import *
 # import networkx as nx
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from random import randint
 import time
 import pdb
@@ -83,7 +83,7 @@ class Circuit:
         attr = [int(x) for x in line.split()]
         n_type = ntype(attr[0]).name
         g_type = gtype(attr[2]).name
-        num = attr[1]
+        num = str(attr[1])
 
         if n_type == "PI" and g_type=="IPT":
             node = IPT(n_type, g_type, num)
@@ -112,12 +112,6 @@ class Circuit:
 
             elif g_type == 'AND':
                 node = AND(n_type, g_type, num)
-
-            elif g_type == 'BUFF':
-                node = BUFF(n_type, g_type, num)
-
-            elif g_type == 'XNOR':
-                node = BUFF(n_type, g_type, num)
 
         node.ntype = n_type
         node.gtype = g_type
@@ -161,6 +155,8 @@ class Circuit:
         else:
             print("ERROR: not known!", ptr.num)
 
+    ## Inputs: Verilog gate input formats
+    ## Outputs: gtype corresponding gate name
     def gtype_translator(self, gate_type):
         if gate_type == 'ipt':
             return gtype(0).name
@@ -182,6 +178,9 @@ class Circuit:
         elif gate_type == 'buf':
             return gtype(9).name
 
+    ## This function is used for inserting the BRCH node
+    ## u_node and d_node are connected originally
+    ## i_node is the node be inserted between u_node and d_node
     def insert_node(self, u_node, d_node, i_node):
         u_node.dnodes.remove(d_node)
         u_node.dnodes.append(i_node)
@@ -190,6 +189,8 @@ class Circuit:
         i_node.unodes.append(u_node)
         i_node.dnodes.append(d_node)
 
+    ## According to the Dict, this function will return the specific node
+    ## It is similar to part of add_node()
     def node_generation(self, Dict):
         if Dict['n_type'] == "PI" and Dict['g_type'] == "IPT":
             node = IPT(Dict['n_type'], Dict['g_type'], Dict['num'])
@@ -216,7 +217,6 @@ class Circuit:
             elif Dict['g_type'] == 'NAND':
                 node = NAND(Dict['n_type'], Dict['g_type'], Dict['num'])
 
-
             elif Dict['g_type'] == 'AND':
                 node = AND(Dict['n_type'], Dict['g_type'], Dict['num'])
 
@@ -228,11 +228,14 @@ class Circuit:
         else:
             raise NotImplementedError()
         return node
+
     def read_verilog(self):
         """
         Read circuit from .v file, each node as an object
         """
         path = "../data/verilog/{}.v".format(self.c_name)
+
+        ## Read the file and Deal with comment and ; issues
         infile = open(path, 'r')
         eff_line = ''
         lines = infile.readlines()
@@ -251,11 +254,15 @@ class Circuit:
             eff_line = ''
             new_lines.append(line)
         infile.close()
-        # 1st time Parsing: Creating all nodes
+
+        ## 1st time Parsing: Creating all nodes
+        # Because the ntype and gtype information are separate, we need to use Dict to collect all information
+        # Key: num
+        # Value: num, ntype and gtype
         Dict = {}
         for line in new_lines:
             if line != "":
-                # wire
+                # Wire
                 line_syntax = re.match(r'^[\s]*wire (.*,*);', line, re.IGNORECASE)
                 if line_syntax:
                     for n in line_syntax.group(1).replace(' ', '').replace('\t', '').split(','):
@@ -286,6 +293,7 @@ class Circuit:
                         self.nodes[new_node.num] = new_node
                         if new_node.ntype == 'PO':
                             self.PO.append(new_node)
+
         # 2nd time Parsing: Making All Connections
         for line in new_lines:
             if line != "":
@@ -299,6 +307,11 @@ class Circuit:
                             self.nodes[node_order[i][1:]].dnodes.append(self.nodes[node_order[0][1:]])
 
         ###### Branch Generation ######
+        # The basic way is looking for those nodes with more-than-1 fan-out nodes
+        # Creating a new FB node
+        # Inserting FB node back into the circuit
+        # We cannot change the dictionary size while in its for loop,
+        # so we create a new dictionary and integrate it back to nodes at the end
         B_Dict = {}
         for node in self.nodes.values():
             if len(node.dnodes) > 1:
@@ -450,12 +463,12 @@ class Circuit:
     def golden_test(self, golden_io_filename):
         infile = open(golden_io_filename, "r")
         lines = infile.readlines()
-        PI_t_order  = [int(x[1:]) for x in lines[0][8:].strip().split(',')]
-        PO_t_order = [int(x[1:]) for x in lines[1][8:].strip().split(',')]
-        print(PI_t_order)
+        PI_t_order  = [x[1:] for x in lines[0][8:].strip().split(',')]
+        PO_t_order = [x[1:] for x in lines[1][8:].strip().split(',')]
+        #print(PI_t_order)
         PI_num = [x.num for x in self.PI]
-        print(PI_num)
-        print("Logic-Sim validation with {} patterns".format(int((len(lines)-2)/3)))
+        #print(PI_num)
+        #print("Logic-Sim validation with {} patterns".format(int((len(lines)-2)/3)))
         if PI_t_order != PI_num:
             print("Error: PI node order does not match! ")
             return False
@@ -470,7 +483,7 @@ class Circuit:
                 if out_node_golden != logic_out["out"+str(out_node)]:
                     print("Error: PO node order does not match! ")
                     return False
-        print("Validation completed successfully - all correct")
+        #print("Validation completed successfully - all correct")
         return True
     
     
