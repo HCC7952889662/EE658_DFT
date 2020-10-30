@@ -58,8 +58,10 @@ class Checker():
         circuit: 1355 has different PI/PO pins
         circuit: 17, 432, 499, 880, 1908, 3540, 5315, 6288 has the same PI/PO pins 
         '''
-        fr_ckt = open(fname_ckt, mode = 'r')
-        fr_verilog = open(fname_verilog, mode = 'r')
+        ckt_path = os.path.join(CKT_DIR,fname_ckt)
+        verilog_path = os.path.join(VERILOG_DIR,fname_verilog)
+        fr_ckt = open(ckt_path, mode = 'r')
+        fr_verilog = open(verilog_path, mode = 'r')
         PI_ckt = []
         PO_ckt = []
         PI_verilog = []
@@ -99,9 +101,26 @@ class Checker():
         PO_ckt.sort() 
         PO_verilog.sort()
         if PI_ckt == PI_verilog and PO_ckt == PO_verilog:
-            print('ckt and verilog files are the same!')
+            print('{} and {} are the same!').format(fname_ckt, fname_verilog)
         else:
-            print('ckt and verilog files are not the same')
+            print('{} and {} are not the same!').format(fname_ckt, fname_verilog)
+
+    def run_check_PI_PO():
+        file_names_ckt = []
+        file_names_ckt_and_verilog = []
+        # r=root, d=directories, f = files
+        for r, d, f in os.walk(config.CKT_DIR):
+            for file in f:
+                if '.ckt' in file:
+                    file_names_ckt.append(os.path.splitext(file)[0])
+        for r, d, f in os.walk(config.VERILOG_DIR):
+            for file in f:
+                if '.v' in file:
+                    if os.path.splitext(file)[0] in file_names_ckt:
+                        file_names_ckt_and_verilog.append(os.path.splitext(file)[0])
+        for file in file_names_ckt_and_verilog:
+            check_PI_PO(file + '.ckt', file + '.v')
+
 
     def check_IO_golden(self, circuit, golden_io_filename):
         #we have golden_test() in circuit
