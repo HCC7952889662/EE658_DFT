@@ -1,4 +1,3 @@
-
 import os
 import subprocess
 import circuit
@@ -56,12 +55,13 @@ class Modelsim():
         Generates a random test patter file for this circuit
         '''
         #print("Generating a test pattern file in {}".format(self.path_in))
+        #get test pattern file name
         if tp_fname is None:
             tp_fname = os.path.join(self.path_in, 
                     self.circuit.c_name + "_" + str(tp_count) + "_tp_b.txt")
         else:
             tp_fname = os.path.join(self.path_in, tp_fname)
-        
+        #create test pattern file
         self.circuit.gen_tp_file(tp_count, fname=tp_fname)
         return tp_fname 
 
@@ -77,9 +77,10 @@ class Modelsim():
         tp_count = len(line_list)-1
         fr.close()
         self.tp_count=tp_count
-        #generate different tb for different test input
+        #get testbemch file name
         tb_fname = os.path.join(self.path, self.circuit.c_name + "_" + str(tp_count) + "_b_tb.v")
-        
+
+        #generate different tb for different test input        
         fw = open(tb_fname, mode='w')
         fw.write("`timescale 1ns/1ns" + "\n")
         fw.write('module ' + str(self.circuit.c_name) + "_" + str(tp_count) + "_b_tb;" + '\n')
@@ -246,16 +247,22 @@ class Modelsim():
         Third: ModelSim will generate the golden I/O file in gold folder
         Fourth: After ModelSim finishes, the function will end
         """ 
+        #copy .v file to the ModelSim project folder
         filepath=os.path.join(self.path, self.circuit.c_name+'.v')
         if os.path.isfile(filepath):
             pass
         else:
             copyfile(os.path.join(config.VERILOG_DIR, self.circuit.c_name + ".v"), filepath)
+        #get the shell file name which will run the ModelSim for different circuit with different pattern count
         if fname_sh == None:
             fname_sh = self.circuit.c_name + "_" + str(self.tp_count) + "_run.sh"
+        #run ModelSim in subprocess
         subprocess.call(['sh',fname_sh], cwd = self.path)
+        #end of subprocess
+        #return to main function
 
-
+    #We do not use this function
+    #We use golden_test() function in circuit.py now.
     def check(self):
         """
         This method checks if the circuit.logicsim matches golden modelsim

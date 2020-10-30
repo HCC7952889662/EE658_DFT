@@ -20,6 +20,12 @@ class Checker():
         - etc. 
         """
     def run(self, ckt_name, tp_count):
+        '''
+        It's like a main function
+        Given the circuit name and test pattern count, it will do the logic_sim on our platform and the simulation on ModelSim
+        Return the check result between logic_sim and ModelSim
+        #We use read_verilog() here
+        '''
         circuit = Circuit(ckt_name)
         circuit.read_verilog()
         circuit.lev()
@@ -33,13 +39,17 @@ class Checker():
 
 
     def run_all(self, tp_count):
+        '''
+        It will run all of .v files in VERILOG_DIR for function run()
+        '''
         file_names = []
-        # r=root, d=directories, f = files
+        #r=root, d=directories, f = files
+        #find all .v files in the VERILOG_DIR
         for r, d, f in os.walk(config.VERILOG_DIR):
             for file in f:
                 if '.v' in file:
                     file_names.append(os.path.splitext(file)[0])
-
+        #check the result by using function run()
         for c_name in file_names:
             if self.run(c_name, tp_count) == False:
                 print('Test: {} fails !'.format(c_name))
@@ -75,23 +85,23 @@ class Checker():
                 PO_ckt.append(line_split[1])
         #get the PI number and PO number in .v file
         for line in fr_verilog:
-
+            #get rid of commented information
             line_syntax = re.match(r'^.*//.*', line, re.IGNORECASE)
             if line_syntax:
                 line = line[:line.index('//')]
-
+            #combine separated lines
             if ';' not in line and 'endmodule' not in line:
                 eff_line = eff_line + line.rstrip()
                 continue
             line = eff_line + line.rstrip()
             eff_line = ''
             if line != "":
-                # PI
+                # find PI
                 line_syntax = re.match(r'^.*input ([a-z]+\s)*(.*,*).*;', line, re.IGNORECASE)
                 if line_syntax:
                     for n in line_syntax.group(2).replace(' ', '').replace('\t', '').split(','):
                        PI_verilog.append(n.lstrip('N'))
-                # PO
+                # find PO
                 line_syntax = re.match(r'^.*output ([a-z]+\s)*(.*,*).*;', line, re.IGNORECASE)
                 if line_syntax:
                     for n in line_syntax.group(2).replace(' ', '').replace('\t', '').split(','):
