@@ -21,7 +21,6 @@ class Checker():
         """
     def run(self, ckt_name, tp_count):
         '''
-        It's like a main function
         Given the circuit name and test pattern count, it will do the logic_sim on our platform and the simulation on ModelSim
         Return the check result between logic_sim and ModelSim
         #We use read_verilog() here
@@ -31,16 +30,16 @@ class Checker():
         circuit.lev()
         sim = Modelsim()
         sim.project(circuit)
-        tp_fname = sim.gen_rand_tp(tp_count= tp_count)
-        sim.gen_tb(tp_fname)
+        sim.gen_rand_tp(tp_count= tp_count)
+        sim.gen_tb()
         sim.simulation()
         tp_path = os.path.join(sim.path_gold, 'golden_' + circuit.c_name + '_'+ str(tp_count)+ '_tp_b.txt')
-        return self.check_IO_golden(circuit, tp)
+        return self.check_IO_golden(circuit, tp_path)
 
 
     def run_all(self, tp_count):
         '''
-        It will run all of .v files in VERILOG_DIR for function run()
+        It will run all of .v files in VERILOG_DIR and compare results between ModelSim and our Simulator
         '''
         file_names = []
         #r=root, d=directories, f = files

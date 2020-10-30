@@ -12,7 +12,7 @@ class Modelsim():
         '''
         Create the ModelSim folder
         '''
-
+        self.tp_fname =None
         if os.path.exists(config.MODELSIM_DIR): 
             #print("Modelsim project folder exists: {}".format(config.MODELSIM_DIR))
             pass
@@ -57,22 +57,22 @@ class Modelsim():
         #print("Generating a test pattern file in {}".format(self.path_in))
         #get test pattern file name
         if tp_fname is None:
-            tp_fname = os.path.join(self.path_in, 
+            self.tp_fname = os.path.join(self.path_in,
                     self.circuit.c_name + "_" + str(tp_count) + "_tp_b.txt")
         else:
-            tp_fname = os.path.join(self.path_in, tp_fname)
+            self.tp_fname = os.path.join(self.path_in, tp_fname)
         #create test pattern file
         self.circuit.gen_tp_file(tp_count, fname=tp_fname)
         return tp_fname 
 
-    def gen_tb(self, tp_fname):
+    def gen_tb(self):
         """ 
         Generate test_bench.v, run.sh, run.do for the specific circuit 
            in the circuit project folder
         """ 
 
         #check number of input test patterns
-        fr = open(tp_fname, mode='r')
+        fr = open(self.tp_fname, mode='r')
         line_list = fr.readlines()
         tp_count = len(line_list)-1
         fr.close()
