@@ -1,4 +1,3 @@
-import circuit
 import re
 import config
 import os
@@ -58,8 +57,8 @@ class Checker():
         circuit: 1355 has different PI/PO pins
         circuit: 17, 432, 499, 880, 1908, 3540, 5315, 6288 has the same PI/PO pins 
         '''
-        ckt_path = os.path.join(CKT_DIR,fname_ckt)
-        verilog_path = os.path.join(VERILOG_DIR,fname_verilog)
+        ckt_path = os.path.join(config.CKT_DIR,fname_ckt)
+        verilog_path = os.path.join(config.VERILOG_DIR,fname_verilog)
         fr_ckt = open(ckt_path, mode = 'r')
         fr_verilog = open(verilog_path, mode = 'r')
         PI_ckt = []
@@ -67,12 +66,14 @@ class Checker():
         PI_verilog = []
         PO_verilog = []
         eff_line = ''
+        #get the PI number and PO number in .ckt file
         for line in fr_ckt:
             line_split = line.split(' ')
             if line[0] == '1':
                 PI_ckt.append(line_split[1])
             if line[0] == '3':
                 PO_ckt.append(line_split[1])
+        #get the PI number and PO number in .v file
         for line in fr_verilog:
 
             line_syntax = re.match(r'^.*//.*', line, re.IGNORECASE)
@@ -100,32 +101,40 @@ class Checker():
         PI_verilog.sort() 
         PO_ckt.sort() 
         PO_verilog.sort()
+        #check if the pin number in .ckt and .v are the same
         if PI_ckt == PI_verilog and PO_ckt == PO_verilog:
-            print('{} and {} are the same!').format(fname_ckt, fname_verilog)
+            print('{} and {} are the same!'.format(fname_ckt, fname_verilog))
         else:
-            print('{} and {} are not the same!').format(fname_ckt, fname_verilog)
+            print('{} and {} are not the same!'.format(fname_ckt, fname_verilog))
 
-    def run_check_PI_PO():
+    def run_check_PI_PO(self):
+        '''
+        check all of .ckt and .v files automatically by using function check_PI_PO()
+        '''
         file_names_ckt = []
         file_names_ckt_and_verilog = []
         # r=root, d=directories, f = files
+
+        #check if .ckt exists for the specific circuit
         for r, d, f in os.walk(config.CKT_DIR):
             for file in f:
                 if '.ckt' in file:
                     file_names_ckt.append(os.path.splitext(file)[0])
+        #check if .ckt and .v both exist for the specific ciruict
         for r, d, f in os.walk(config.VERILOG_DIR):
             for file in f:
                 if '.v' in file:
                     if os.path.splitext(file)[0] in file_names_ckt:
                         file_names_ckt_and_verilog.append(os.path.splitext(file)[0])
+        #check by function check_PI_PO()
         for file in file_names_ckt_and_verilog:
-            check_PI_PO(file + '.ckt', file + '.v')
+            self.check_PI_PO(file + '.ckt', file + '.v')
 
 
     def check_IO_golden(self, circuit, golden_io_filename):
         #we have golden_test() in circuit
-        # compares the results of logic-sim of this circuit,
-        #  ... provided a golden input/output file
+        #compares the results of logic-sim of this circuit,
+        #... provided a golden input/output file
         infile = open(golden_io_filename, "r")
         lines = infile.readlines()
         PI_t_order  = [x[1:] for x in lines[0][8:].strip().split(',')]
@@ -148,9 +157,10 @@ class Checker():
                     return False
         print("Validation completed successfully - all correct")
         return True
-
+'''
 try:
     Checker().run_all(50)
 
 except TypeError:
     print('TypeError!')
+'''
